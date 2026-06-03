@@ -29,6 +29,11 @@ public class DataScopeProperties {
     private String roleHeaderName = "X-DataScope-Roles";
 
     /**
+     * 权限列表的请求头名称（多个权限用逗号分隔）
+     */
+    private String permissionHeaderName = "X-DataScope-Permissions";
+
+    /**
      * 组织ID的请求头名称
      */
     private String orgIdHeaderName = "X-Org-Id";

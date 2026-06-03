@@ -72,6 +72,15 @@ public class DataScopeAutoConfiguration {
                         info.setRoles(Collections.emptyList());
                     }
 
+                    // 从请求头中提取权限列表
+                    String permissionsHeader = httpRequest.getHeader(properties.getPermissionHeaderName());
+                    if (permissionsHeader != null && !permissionsHeader.isEmpty()) {
+                        List<String> permissions = Arrays.asList(permissionsHeader.split(","));
+                        info.setPermissions(permissions);
+                    } else {
+                        info.setPermissions(Collections.emptyList());
+                    }
+
                     // 从请求头中提取组织ID
                     String orgId = httpRequest.getHeader(properties.getOrgIdHeaderName());
                     if (orgId != null) {
@@ -95,8 +104,8 @@ public class DataScopeAutoConfiguration {
                     DataScopeContext.set(info);
 
                     if (log.isDebugEnabled()) {
-                        log.debug("DataScope context set from headers: dataScopeId={}, roles={}, orgId={}, userId={}",
-                                info.getDataScopeId(), info.getRoles(), info.getOrgId(), info.getUserId());
+                        log.debug("DataScope context set from headers: dataScopeId={}, roles={}, permissions={}, orgId={}, userId={}",
+                                info.getDataScopeId(), info.getRoles(), info.getPermissions(), info.getOrgId(), info.getUserId());
                     }
 
                     // 继续执行请求链

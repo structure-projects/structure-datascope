@@ -75,6 +75,16 @@ public class DataScopeContext {
     }
 
     /**
+     * 获取当前用户权限列表
+     *
+     * @return 权限列表，永远不为 null（为空时返回空列表）
+     */
+    public static List<String> getPermissions() {
+        DataScopeInfo info = get();
+        return info != null ? info.getPermissions() : new ArrayList<>();
+    }
+
+    /**
      * 检查当前用户是否拥有指定角色
      *
      * @param role 角色名称
@@ -87,6 +97,59 @@ public class DataScopeContext {
             log.trace("Check role '{}': {}", role, result);
         }
         return result;
+    }
+
+    /**
+     * 检查当前用户是否拥有指定权限
+     *
+     * @param permission 权限标识
+     * @return true 表示拥有该权限
+     */
+    public static boolean hasPermission(String permission) {
+        List<String> permissions = getPermissions();
+        boolean result = permissions != null && permissions.contains(permission);
+        if (log.isTraceEnabled()) {
+            log.trace("Check permission '{}': {}", permission, result);
+        }
+        return result;
+    }
+
+    /**
+     * 检查当前用户是否拥有指定角色列表中的任意角色
+     *
+     * @param roles 角色列表
+     * @return true 表示拥有任意一个角色
+     */
+    public static boolean hasAnyRole(String... roles) {
+        if (roles == null || roles.length == 0) {
+            return false;
+        }
+        List<String> userRoles = getRoles();
+        for (String role : roles) {
+            if (userRoles != null && userRoles.contains(role)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 检查当前用户是否拥有指定权限列表中的任意权限
+     *
+     * @param permissions 权限列表
+     * @return true 表示拥有任意一个权限
+     */
+    public static boolean hasAnyPermission(String... permissions) {
+        if (permissions == null || permissions.length == 0) {
+            return false;
+        }
+        List<String> userPermissions = getPermissions();
+        for (String permission : permissions) {
+            if (userPermissions != null && userPermissions.contains(permission)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -121,5 +184,64 @@ public class DataScopeContext {
         if (log.isDebugEnabled()) {
             log.debug("Roles set to: {}", roles);
         }
+    }
+
+    /**
+     * 设置当前用户权限列表
+     *
+     * @param permissions 权限列表
+     */
+    public static void setPermissions(List<String> permissions) {
+        DataScopeInfo info = get();
+        if (info == null) {
+            info = new DataScopeInfo();
+            CONTEXT.set(info);
+        }
+        info.setPermissions(permissions);
+        if (log.isDebugEnabled()) {
+            log.debug("Permissions set to: {}", permissions);
+        }
+    }
+
+    /**
+     * 设置组织ID
+     *
+     * @param orgId 组织ID
+     */
+    public static void setOrgId(String orgId) {
+        DataScopeInfo info = get();
+        if (info == null) {
+            info = new DataScopeInfo();
+            CONTEXT.set(info);
+        }
+        info.setOrgId(orgId);
+    }
+
+    /**
+     * 设置部门ID列表
+     *
+     * @param deptIds 部门ID列表
+     */
+    public static void setDeptIds(List<String> deptIds) {
+        DataScopeInfo info = get();
+        if (info == null) {
+            info = new DataScopeInfo();
+            CONTEXT.set(info);
+        }
+        info.setDeptIds(deptIds);
+    }
+
+    /**
+     * 设置用户ID
+     *
+     * @param userId 用户ID
+     */
+    public static void setUserId(String userId) {
+        DataScopeInfo info = get();
+        if (info == null) {
+            info = new DataScopeInfo();
+            CONTEXT.set(info);
+        }
+        info.setUserId(userId);
     }
 }

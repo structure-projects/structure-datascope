@@ -19,7 +19,7 @@ import java.util.Map;
  * 提供以下功能：
  * <ul>
  *     <li>数据规则注册与获取</li>
- *     <li>列级权限验证（判断字段是否可见）</li>
+ *     <li>列级权限验证（判断字段是否可见，支持角色和权限两种维度）</li>
  *     <li>对象字段过滤（根据权限设置字段为 null）</li>
  *     <li>行级 SQL 条件构建</li>
  * </ul>
@@ -86,18 +86,21 @@ public class DataRuleEngine {
     }
 
     /**
-     * 评估列级权限规则
+     * 评估列级权限规则（支持角色和权限两种维度）
      *
      * @param columnRule 列级规则
      * @return true 表示字段可见
      */
     private boolean evaluateColumnRule(ColumnRule columnRule) {
         List<String> userRoles = DataScopeContext.getRoles();
+        List<String> userPermissions = DataScopeContext.getPermissions();
 
         if (log.isTraceEnabled()) {
-            log.trace("Evaluating column rule: {}, user roles: {}", columnRule, userRoles);
+            log.trace("Evaluating column rule: {}, user roles: {}, user permissions: {}", 
+                    columnRule, userRoles, userPermissions);
         }
 
+        // 优先检查隐藏规则（角色维度）
         if (!columnRule.getHiddenIfRoleIn().isEmpty()) {
             for (String role : columnRule.getHiddenIfRoleIn()) {
                 if (userRoles.contains(role)) {
@@ -107,6 +110,17 @@ public class DataRuleEngine {
             }
         }
 
+        // 优先检查隐藏规则（权限维度）
+        if (!columnRule.getHiddenIfPermissionIn().isEmpty()) {
+            for (String permission : columnRule.getHiddenIfPermissionIn()) {
+                if (userPermissions.contains(permission)) {
+                    log.debug("Field hidden because user has permission: {}", permission);
+                    return false;
+                }
+            }
+        }
+
+        // 检查可见规则（角色维度）
         if (!columnRule.getVisibleIfRoleIn().isEmpty()) {
             for (String role : columnRule.getVisibleIfRoleIn()) {
                 if (userRoles.contains(role)) {
@@ -114,8 +128,24 @@ public class DataRuleEngine {
                     return true;
                 }
             }
-            log.debug("Field hidden because user does not have any of the required roles");
-            return false;
+        }
+
+        // 检查可见规则（权限维度）
+        if (!columnRule.getVisibleIfPermissionIn().isEmpty()) {
+            for (String permission : columnRule.getVisibleIfPermissionIn()) {
+                if (userPermissions.contains(permission)) {
+                    log.debug("Field visible because user has permission: {}", permission);
+                    return true;
+                }
+            }
+            
+            // 如果配置了权限但用户没有任何所需权限，则字段不可见
+            if (!columnRule.getVisibleIfRoleIn().isEmpty()) {
+                // 已在角色检查中返回，这里不需要额外处理
+            } else {
+                log.debug("Field hidden because user does not have any of the required permissions");
+                return false;
+            }
         }
 
         return columnRule.isVisible();
@@ -179,18 +209,21 @@ public class DataRuleEngine {
     }
 
     /**
-     * 评估字段注解
+     * 评估字段注解（支持角色和权限两种维度）
      *
      * @param annotation 字段注解
      * @return true 表示字段可见
      */
     private boolean evaluateFieldAnnotation(DataScopeField annotation) {
         List<String> userRoles = DataScopeContext.getRoles();
+        List<String> userPermissions = DataScopeContext.getPermissions();
 
         if (log.isTraceEnabled()) {
-            log.trace("Evaluating field annotation: {}, user roles: {}", annotation, userRoles);
+            log.trace("Evaluating field annotation: {}, user roles: {}, user permissions: {}", 
+                    annotation, userRoles, userPermissions);
         }
 
+        // 优先检查隐藏规则（角色维度）
         if (annotation.hiddenIfRoleIn().length > 0) {
             for (String role : annotation.hiddenIfRoleIn()) {
                 if (userRoles.contains(role)) {
@@ -200,6 +233,17 @@ public class DataRuleEngine {
             }
         }
 
+        // 优先检查隐藏规则（权限维度）
+        if (annotation.hiddenIfPermissionIn().length > 0) {
+            for (String permission : annotation.hiddenIfPermissionIn()) {
+                if (userPermissions.contains(permission)) {
+                    log.debug("Field hidden by annotation because user has permission: {}", permission);
+                    return false;
+                }
+            }
+        }
+
+        // 检查可见规则（角色维度）
         if (annotation.visibleIfRoleIn().length > 0) {
             for (String role : annotation.visibleIfRoleIn()) {
                 if (userRoles.contains(role)) {
@@ -207,7 +251,23 @@ public class DataRuleEngine {
                     return true;
                 }
             }
-            log.debug("Field hidden by annotation because user does not have any of the required roles");
+            
+            // 如果配置了角色但用户没有任何所需角色，则继续检查权限
+            if (annotation.visibleIfPermissionIn().length == 0) {
+                log.debug("Field hidden by annotation because user does not have any of the required roles");
+                return false;
+            }
+        }
+
+        // 检查可见规则（权限维度）
+        if (annotation.visibleIfPermissionIn().length > 0) {
+            for (String permission : annotation.visibleIfPermissionIn()) {
+                if (userPermissions.contains(permission)) {
+                    log.debug("Field visible by annotation because user has permission: {}", permission);
+                    return true;
+                }
+            }
+            log.debug("Field hidden by annotation because user does not have any of the required permissions");
             return false;
         }
 
