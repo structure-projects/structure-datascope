@@ -1,0 +1,27 @@
+# DataScope Spring Boot Starter 配置示例
+server:
+  port: 8080
+
+spring:
+  application:
+    name: data-scope-example
+
+# 数据范围管理配置
+structure:
+  data-scope:
+    enabled: true
+    # 数据范围ID请求头
+    header-name: X-DataScope-Id
+    # 角色列表请求头（多个角色用逗号分隔）
+    role-header-name: X-DataScope-Roles
+    # 组织ID请求头
+    org-id-header-name: X-Org-Id
+    # 部门ID列表请求头
+    dept-ids-header-name: X-Dept-Ids
+    # 用户ID请求头
+    user-id-header-name: X-User-Id
+
+logging:
+  level:
+    cn.structured.datascope: DEBUG
+    root: INFO

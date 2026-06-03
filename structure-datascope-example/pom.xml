@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cn.structured</groupId>
+        <artifactId>structure-datascope-dependencies</artifactId>
+        <version>${revision}</version>
+        <relativePath>../structure-datascope-dependencies/pom.xml</relativePath>
+    </parent>
+
+    <packaging>pom</packaging>
+    <name>structure-datascope-example</name>
+    <artifactId>structure-datascope-example</artifactId>
+    <description>数据范围管理示例模块</description>
+
+    <modules>
+        <module>structure-datascope-spring-boot-example</module>
+        <module>structure-datascope-core-example</module>
+        <module>structure-datascope-redis-example</module>
+        <module>structure-datascope-mybatis-plus-example</module>
+        <module>structure-datascope-message-example</module>
+        <module>structure-datascope-elasticsearch-example</module>
+        <module>structure-datascope-mongodb-example</module>
+        <module>structure-datascope-job-example</module>
+    </modules>
+
+</project>
