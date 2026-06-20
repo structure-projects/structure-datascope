@@ -109,13 +109,9 @@ public class DataScopeAutoConfiguration {
     }
 
     /**
-     * 注册数据权限响应体处理器（已弃用）
+     * 注册数据权限响应体处理器
      * <p>
      * 自动过滤 Controller 返回对象中的敏感字段，对使用者透明
-     * </p>
-     * <p>
-     * 注意：此方式已弃用，推荐使用 FastJson 的 SerializeFilter 实现。
-     * 请在项目中配置 FastJsonHttpMessageConverter 并使用 DataScopeSerializeFilter。
      * </p>
      */
     @Bean
