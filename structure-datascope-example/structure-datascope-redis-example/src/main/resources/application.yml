@@ -17,6 +17,10 @@ structure:
     enabled: true
     scan-packages:
       - cn.structured.datascope.example.redis.dto
+    field-config:
+      org-id-field: orgId
+      dept-id-field: deptId
+      user-id-field: userId
 
 logging:
   level:

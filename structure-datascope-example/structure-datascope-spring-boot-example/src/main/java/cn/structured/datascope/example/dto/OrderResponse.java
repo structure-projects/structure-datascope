@@ -1,6 +1,5 @@
 package cn.structured.datascope.example.dto;
 
-import cn.structured.datascope.annotation.DataScopeField;
 import cn.structured.datascope.annotation.DataScopeRule;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +11,8 @@ import java.time.LocalDateTime;
 /**
  * 订单响应DTO
  * <p>
- * 使用 @DataScopeRule 和 @DataScopeField 注解定义字段权限
+ * 使用 @DataScopeRule 注解标记资源类型
+ * 行级和列级规则通过 DataScopeInfo 配置
  * </p>
  */
 @Data
@@ -32,27 +32,23 @@ public class OrderResponse {
     private String orderNo;
 
     /**
-     * 订单金额（仅管理员和财务可见）
+     * 订单金额
      */
-    @DataScopeField(visibleIfRoleIn = {"SYS_ADMIN", "FINANCE"})
     private BigDecimal amount;
 
     /**
-     * 客户手机号（仅管理员可见）
+     * 客户手机号
      */
-    @DataScopeField(visibleIfRoleIn = {"SYS_ADMIN"})
     private String phone;
 
     /**
-     * 客户邮箱（所有人可见）
+     * 客户邮箱
      */
-    @DataScopeField(visible = true)
     private String email;
 
     /**
-     * 内部备注（对普通员工隐藏）
+     * 内部备注
      */
-    @DataScopeField(hiddenIfRoleIn = {"EMPLOYEE"})
     private String remark;
 
     /**

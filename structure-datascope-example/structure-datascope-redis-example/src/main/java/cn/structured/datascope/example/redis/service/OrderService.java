@@ -1,13 +1,14 @@
 package cn.structured.datascope.example.redis.service;
 
+import cn.structured.datascope.engine.DataRuleEngine;
 import cn.structured.datascope.example.redis.dto.OrderResponse;
 import cn.structured.datascope.redis.template.DataScopeRedisTemplate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,13 +27,16 @@ public class OrderService {
 
     private final DataScopeRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
+    private final DataRuleEngine ruleEngine;
 
     private static final String RESOURCE = "order";
 
     public OrderService(DataScopeRedisTemplate redisTemplate,
-                       ObjectMapper objectMapper) {
+                       ObjectMapper objectMapper,
+                       @Qualifier("redisDataRuleEngine") DataRuleEngine ruleEngine) {
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
+        this.ruleEngine = ruleEngine;
     }
 
     /**
@@ -42,6 +46,7 @@ public class OrderService {
         log.info("Fetching order list from Redis...");
 
         Set<String> keys = redisTemplate.keys(RESOURCE);
+        log.info("Found {} keys in Redis: {}", keys != null ? keys.size() : 0, keys);
         if (keys == null || keys.isEmpty()) {
             return new ArrayList<>();
         }
@@ -120,12 +125,34 @@ public class OrderService {
         return redisTemplate.count(RESOURCE);
     }
 
+    /**
+     * 获取当前用户的行级过滤条件
+     * <p>
+     * 用于在 Redis 键层面构建数据隔离前缀
+     * </p>
+     */
+    public String getRowCondition() {
+        String condition = ruleEngine.buildRowCondition(RESOURCE);
+        log.info("Generated row condition: {}", condition);
+        return condition;
+    }
+
     private OrderResponse getOrderFromRedis(String fullKey) {
         // 从完整键中提取业务键（去掉数据权限前缀）
-        String[] parts = fullKey.split(":");
-        String businessKey = parts[parts.length - 1];
-        String json = redisTemplate.get(RESOURCE, businessKey);
-        return deserializeOrder(json);
+        // 前缀格式: order:orgId:10:deptId:1:
+        // 完整键: order:orgId:10:deptId:1:1
+        // 需要提取: 1
+        String rowCondition = ruleEngine.buildRowCondition(RESOURCE);
+        if (fullKey.startsWith(rowCondition)) {
+            String businessKey = fullKey.substring(rowCondition.length());
+            log.debug("Extracted business key: '{}' from full key: '{}'", businessKey, fullKey);
+            String json = redisTemplate.get(RESOURCE, businessKey);
+            log.debug("Retrieved JSON for business key '{}': {}", businessKey, json);
+            return deserializeOrder(json);
+        }
+        // 兼容处理：如果键不匹配，返回null
+        log.warn("Key '{}' does not start with row condition '{}'", fullKey, rowCondition);
+        return null;
     }
 
     private String serializeOrder(OrderResponse order) {

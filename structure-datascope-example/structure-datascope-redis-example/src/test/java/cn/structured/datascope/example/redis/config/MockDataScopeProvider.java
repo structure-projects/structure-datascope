@@ -1,4 +1,4 @@
-package cn.structured.datascope.example.config;
+package cn.structured.datascope.example.redis.config;
 
 import cn.structured.datascope.DataScopeInfo;
 import cn.structured.datascope.provider.DataScopeProvider;

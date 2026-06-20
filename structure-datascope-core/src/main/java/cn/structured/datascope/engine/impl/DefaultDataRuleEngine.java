@@ -1,8 +1,11 @@
 package cn.structured.datascope.engine.impl;
 
 import cn.structured.datascope.DataScopeContext;
+import cn.structured.datascope.DataScopeInfo;
 import cn.structured.datascope.annotation.DataScopeField;
 import cn.structured.datascope.annotation.DataScopeRule;
+import cn.structured.datascope.cache.DataScopeClassCache;
+import cn.structured.datascope.cache.DataScopeResourceMeta;
 import cn.structured.datascope.config.DataScopeFieldConfig;
 import cn.structured.datascope.engine.DataRuleEngine;
 import cn.structured.datascope.rule.ColumnRule;
@@ -144,9 +147,11 @@ public class DefaultDataRuleEngine implements DataRuleEngine {
                     return true;
                 }
             }
-            // 如果配置了角色但用户没有任何所需角色，则字段不可见
-            log.debug("Field hidden because user does not have any of the required roles");
-            return false;
+            // 如果配置了角色但用户没有任何所需角色，则继续检查权限
+            if (columnRule.getVisibleIfPermissionIn().isEmpty()) {
+                log.debug("Field hidden because user does not have any of the required roles");
+                return false;
+            }
         }
 
         // 检查可见规则（权限维度）
@@ -174,12 +179,85 @@ public class DefaultDataRuleEngine implements DataRuleEngine {
         }
 
         Class<?> clazz = obj.getClass();
-        DataScopeRule classAnnotation = clazz.getAnnotation(DataScopeRule.class);
-        String ruleResource = classAnnotation != null ? classAnnotation.resource() : resource;
+        String className = clazz.getName();
+
+        // 通过缓存检查是否有 @DataScopeRule 注解
+        DataScopeResourceMeta meta = DataScopeClassCache.get(className);
+        if (meta != null) {
+            resource = meta.getResource();
+        } else if (clazz.isAnnotationPresent(DataScopeRule.class)) {
+            // 缓存未命中时使用反射（备用）
+            DataScopeRule classAnnotation = clazz.getAnnotation(DataScopeRule.class);
+            resource = classAnnotation != null ? classAnnotation.resource() : resource;
+        }
 
         if (log.isDebugEnabled()) {
-            log.debug("Filtering object of type {}, using resource: {}", clazz.getSimpleName(), ruleResource);
+            log.debug("Filtering object of type {}, using resource: {}", clazz.getSimpleName(), resource);
         }
+
+        // 首先检查 DataScopeInfo 中的 hiddenFields 配置
+        if (DataScopeContext.getInfo() != null
+                && DataScopeContext.getInfo().getHiddenFields() != null
+                && !DataScopeContext.getInfo().getHiddenFields().isEmpty()) {
+            filterUsingScopeInfo(obj, resource);
+            return;
+        }
+
+        // 如果没有 hiddenFields 配置，回退到使用注解方式
+        filterUsingAnnotations(obj, resource);
+    }
+
+    /**
+     * 使用 DataScopeInfo 中的配置过滤字段
+     */
+    private void filterUsingScopeInfo(Object obj, String resource) {
+        if (obj == null || resource == null) {
+            return;
+        }
+
+        Class<?> clazz = obj.getClass();
+        Map<String, List<String>> allHiddenFields = DataScopeContext.getInfo() != null
+                ? DataScopeContext.getInfo().getHiddenFields()
+                : null;
+
+        if (allHiddenFields == null || allHiddenFields.isEmpty()) {
+            log.debug("No hidden fields configured in DataScopeInfo");
+            return;
+        }
+
+        List<String> hiddenFieldList = allHiddenFields.get(resource);
+        if (hiddenFieldList == null || hiddenFieldList.isEmpty()) {
+            log.debug("No hidden fields configured for resource: {}", resource);
+            return;
+        }
+
+        Field[] fields = clazz.getDeclaredFields();
+        int filteredCount = 0;
+
+        for (Field field : fields) {
+            String fieldName = field.getName();
+            if (hiddenFieldList.contains(fieldName)) {
+                try {
+                    field.setAccessible(true);
+                    field.set(obj, null);
+                    filteredCount++;
+                    log.debug("Field '{}' set to null (hidden by DataScopeInfo config)", fieldName);
+                } catch (IllegalAccessException e) {
+                    log.warn("Failed to set field {} to null", fieldName, e);
+                }
+            }
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Filtered {} fields for object of type {} using DataScopeInfo", filteredCount, clazz.getSimpleName());
+        }
+    }
+
+    /**
+     * 使用注解方式过滤字段（向后兼容）
+     */
+    private void filterUsingAnnotations(Object obj, String resource) {
+        Class<?> clazz = obj.getClass();
 
         Field[] fields = clazz.getDeclaredFields();
         int filteredCount = 0;
@@ -195,7 +273,7 @@ public class DefaultDataRuleEngine implements DataRuleEngine {
             if (fieldAnnotation != null) {
                 visible = evaluateFieldAnnotation(fieldAnnotation);
             } else {
-                visible = canSeeField(ruleResource, fieldName);
+                visible = canSeeField(resource, fieldName);
             }
 
             if (!visible) {
@@ -211,7 +289,7 @@ public class DefaultDataRuleEngine implements DataRuleEngine {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Filtered {} fields for object of type {}", filteredCount, clazz.getSimpleName());
+            log.debug("Filtered {} fields for object of type {} using annotations", filteredCount, clazz.getSimpleName());
         }
     }
 
@@ -283,22 +361,45 @@ public class DefaultDataRuleEngine implements DataRuleEngine {
 
     @Override
     public String buildRowCondition(String resource) {
-        DataRule rule = getRule(resource);
-        if (rule == null || rule.getRowRules() == null || rule.getRowRules().isEmpty()) {
-            log.debug("No row rules for resource: {}", resource);
+        DataScopeInfo scopeInfo = DataScopeContext.getInfo();
+        if (scopeInfo == null) {
+            log.debug("No DataScopeInfo found in context");
             return "";
         }
 
         StringBuilder sb = new StringBuilder();
-        for (RowRule rowRule : rule.getRowRules()) {
+
+        // 根据 DataScopeInfo 自动构建行级条件
+        // orgId 字段过滤
+        if (scopeInfo.getOrgId() != null && !scopeInfo.getOrgId().isEmpty()) {
             if (sb.length() > 0) {
                 sb.append(" AND ");
             }
-            sb.append(buildCondition(rowRule));
+            sb.append("org_id = '").append(scopeInfo.getOrgId()).append("'");
+        }
+
+        // deptIds 字段过滤
+        List<String> deptIds = scopeInfo.getDeptIds();
+        if (deptIds != null && !deptIds.isEmpty()) {
+            if (sb.length() > 0) {
+                sb.append(" AND ");
+            }
+            sb.append("dept_id IN (");
+            for (int i = 0; i < deptIds.size(); i++) {
+                if (i > 0) {
+                    sb.append(", ");
+                }
+                sb.append("'").append(deptIds.get(i)).append("'");
+            }
+            sb.append(")");
         }
 
         String condition = sb.toString();
-        log.info("Built row condition for resource '{}': {}", resource, condition);
+        if (!condition.isEmpty()) {
+            log.info("Built row condition for resource '{}': {}", resource, condition);
+        } else {
+            log.debug("No row condition built for resource '{}': no orgId or deptIds in context", resource);
+        }
         return condition;
     }
 
@@ -312,6 +413,12 @@ public class DefaultDataRuleEngine implements DataRuleEngine {
         String field = rule.getField();
         String op = rule.getOp();
         Object value = rule.getValue();
+
+        // 解析占位符 ${...}，从 DataScopeContext 获取实际值
+        if (value instanceof String && ((String) value).startsWith("${") && ((String) value).endsWith("}")) {
+            String contextKey = ((String) value).substring(2, ((String) value).length() - 1);
+            value = resolveContextValue(contextKey);
+        }
 
         if ("IN".equalsIgnoreCase(op)) {
             if (value instanceof List) {
@@ -350,6 +457,23 @@ public class DefaultDataRuleEngine implements DataRuleEngine {
         }
 
         return field + " " + op + " " + value;
+    }
+
+    /**
+     * 从 DataScopeContext 解析占位符对应的值
+     *
+     * @param contextKey 上下文字段名
+     * @return 实际值
+     */
+    protected Object resolveContextValue(String contextKey) {
+        if ("orgId".equals(contextKey)) {
+            return DataScopeContext.getOrgId();
+        } else if ("deptIds".equals(contextKey)) {
+            return DataScopeContext.getDeptIds();
+        } else if ("userId".equals(contextKey)) {
+            return DataScopeContext.getUserId();
+        }
+        return null;
     }
 
     @Override

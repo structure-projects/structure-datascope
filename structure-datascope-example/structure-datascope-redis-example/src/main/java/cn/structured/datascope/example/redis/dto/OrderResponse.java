@@ -21,16 +21,12 @@ public class OrderResponse {
     private Long id;
     private String orderNo;
 
-    @DataScopeField(visibleIfRoleIn = {"SYS_ADMIN", "FINANCE"})
     private BigDecimal amount;
 
-    @DataScopeField(visibleIfRoleIn = {"SYS_ADMIN"})
     private String phone;
 
-    @DataScopeField(visible = true)
     private String email;
 
-    @DataScopeField(hiddenIfRoleIn = {"EMPLOYEE"})
     private String remark;
 
     private Long orgId;

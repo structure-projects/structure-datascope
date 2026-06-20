@@ -25,7 +25,7 @@
         <!-- 依赖核心模块 -->
         <dependency>
             <groupId>cn.structured</groupId>
-            <artifactId>structure-datascope-starter</artifactId>
+            <artifactId>structure-datascope-core</artifactId>
             <version>${revision}</version>
         </dependency>
         <!-- Spring Boot Redis Starter -->

@@ -7,13 +7,16 @@ import cn.structured.datascope.engine.impl.DefaultDataRuleEngineManager;
 import cn.structured.datascope.provider.DataScopeProvider;
 import cn.structured.datascope.provider.DefaultDataScopeProviderImpl;
 import cn.structured.datascope.scanner.DataRuleScanner;
+import cn.structured.datascope.web.DataScopeResponseBodyAdvice;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.util.Arrays;
 
@@ -35,7 +38,7 @@ import java.util.Arrays;
  */
 @Slf4j
 @Configuration
-@EnableConfigurationProperties(DataScopeProperties.class)
+@EnableConfigurationProperties({DataScopeProperties.class,DataScopeFieldConfig.class})
 @ConditionalOnWebApplication
 public class DataScopeAutoConfiguration {
 
@@ -46,25 +49,6 @@ public class DataScopeAutoConfiguration {
         log.info("DataScopeAutoConfiguration initialized with properties: {}", properties);
     }
 
-    /**
-     * 注册字段配置 Bean
-     * <p>
-     * 用于配置数据权限隔离时使用的字段名称（如 orgId、deptId、userId）
-     * </p>
-     */
-    @Bean
-    @ConditionalOnMissingBean(DataScopeFieldConfig.class)
-    public DataScopeFieldConfig dataScopeFieldConfig() {
-        DataScopeFieldConfig fieldConfig = properties.getFieldConfig();
-        if (fieldConfig == null) {
-            fieldConfig = new DataScopeFieldConfig();
-        }
-        log.info("Registering DataScopeFieldConfig: orgIdField={}, deptIdField={}, userIdField={}",
-                fieldConfig.getOrgIdField(),
-                fieldConfig.getDeptIdField(),
-                fieldConfig.getUserIdField());
-        return fieldConfig;
-    }
 
     /**
      * 注册数据规则引擎管理器
@@ -86,6 +70,7 @@ public class DataScopeAutoConfiguration {
      * </p>
      */
     @Bean
+    @Primary
     @ConditionalOnMissingBean(DataRuleEngine.class)
     public DataRuleEngine dataRuleEngine(DataScopeFieldConfig fieldConfig, DataRuleEngineManager engineManager) {
         log.info("Registering default DataRuleEngine with field config...");
@@ -121,5 +106,20 @@ public class DataScopeAutoConfiguration {
         DataRuleScanner dataRuleScanner = new DataRuleScanner(engineManager.getDefaultEngine(), scanPackages);
         dataRuleScanner.scanAndRegister();
         return dataRuleScanner;
+    }
+
+    /**
+     * 注册数据权限响应体处理器
+     * <p>
+     * 自动过滤 Controller 返回对象中的敏感字段，对使用者透明
+     * </p>
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "structure.data-scope", name = "auto-filter-response", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnWebApplication
+    public DataScopeResponseBodyAdvice dataScopeResponseBodyAdvice(
+            @Qualifier("dataRuleEngine") DataRuleEngine ruleEngine) {
+        log.info("Registering DataScopeResponseBodyAdvice for automatic field filtering");
+        return new DataScopeResponseBodyAdvice(ruleEngine);
     }
 }

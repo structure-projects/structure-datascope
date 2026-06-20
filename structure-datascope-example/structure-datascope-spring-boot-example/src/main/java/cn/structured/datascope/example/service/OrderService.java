@@ -30,35 +30,24 @@ public class OrderService {
     /**
      * 获取订单列表
      * <p>
-     * 演示列级权限过滤：在返回前根据用户角色过滤敏感字段
+     * 注意：此处不调用 ruleEngine.filter()，字段过滤由框架自动完成
+     * （通过 DataScopeResponseBodyAdvice 在响应序列化前自动过滤）
      * </p>
      */
     public List<OrderResponse> getOrderList() {
         log.info("Fetching order list...");
-
-        // 模拟从数据库查询订单
-        List<OrderResponse> orders = createMockOrders();
-
-        // 应用列级权限过滤
-        orders.forEach(order -> {
-            ruleEngine.filter(order, "order");
-            log.debug("Filtered order {}: amount={}, phone={}, remark={}",
-                    order.getOrderNo(), order.getAmount(), order.getPhone(), order.getRemark());
-        });
-
-        return orders;
+        return createMockOrders();
     }
 
     /**
      * 获取订单详情
+     * <p>
+     * 注意：此处不调用 ruleEngine.filter()，字段过滤由框架自动完成
+     * </p>
      */
     public OrderResponse getOrderById(Long id) {
         log.info("Fetching order by id: {}", id);
-
-        OrderResponse order = createMockOrder(id, "ORD-" + id);
-        ruleEngine.filter(order, "order");
-
-        return order;
+        return createMockOrder(id, "ORD-" + id);
     }
 
     /**

@@ -23,6 +23,14 @@ public class DataScopeProperties {
      */
     private boolean autoRegisterRules = true;
 
+    /**
+     * 是否自动过滤响应体中的敏感字段
+     * <p>
+     * 启用后，框架会自动在响应序列化前过滤带有 @DataScopeRule 注解的 DTO 敏感字段
+     * </p>
+     */
+    private boolean autoFilterResponse = true;
+
 
     /**
      * 规则扫描包路径
@@ -32,9 +40,4 @@ public class DataScopeProperties {
      */
     private String[] scanPackages = new String[0];
 
-
-    /**
-     * 字段配置
-     */
-    private DataScopeFieldConfig fieldConfig;
 }

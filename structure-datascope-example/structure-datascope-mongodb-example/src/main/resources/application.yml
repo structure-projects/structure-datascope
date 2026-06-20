@@ -15,8 +15,10 @@ spring:
 # 数据范围管理配置
 structure:
   data-scope:
-    enabled: true
-
+    field-config:
+      org-id-field: org_id
+      dept-id-field: dept_id
+      user-id-field: userId
 logging:
   level:
     cn.structured.datascope: DEBUG

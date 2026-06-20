@@ -94,7 +94,7 @@ public class RedisDataRuleEngine extends DefaultDataRuleEngine {
     /**
      * 构建键前缀条件
      * <p>
-     * 例如：order:orgId:10:deptId:dept-1:deptId:dept-2:
+     * 例如：order:orgId:10:deptId:1
      * </p>
      */
     private String buildPrefixCondition(String resource, String orgId, List<String> deptIds) {
@@ -105,10 +105,9 @@ public class RedisDataRuleEngine extends DefaultDataRuleEngine {
             sb.append(KEY_SEPARATOR).append(getOrgIdField()).append(KEY_SEPARATOR).append(orgId);
         }
 
+        // 只取第一个部门ID，避免多层级前缀
         if (deptIds != null && !deptIds.isEmpty()) {
-            for (String deptId : deptIds) {
-                sb.append(KEY_SEPARATOR).append(getDeptIdField()).append(KEY_SEPARATOR).append(deptId);
-            }
+            sb.append(KEY_SEPARATOR).append(getDeptIdField()).append(KEY_SEPARATOR).append(deptIds.get(0));
         }
 
         sb.append(KEY_SEPARATOR);

@@ -1,6 +1,8 @@
 package cn.structured.datascope.config;
 
 import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * 数据范围字段配置类
@@ -19,6 +21,8 @@ import lombok.Data;
  * </pre>
  */
 @Data
+@Configuration
+@ConfigurationProperties(prefix = "structure.data-scope.field-config")
 public class DataScopeFieldConfig {
 
     /**

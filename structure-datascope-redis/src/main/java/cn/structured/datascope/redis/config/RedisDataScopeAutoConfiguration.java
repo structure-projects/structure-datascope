@@ -5,6 +5,7 @@ import cn.structured.datascope.engine.DataRuleEngineManager;
 import cn.structured.datascope.redis.engine.RedisDataRuleEngine;
 import cn.structured.datascope.redis.template.DataScopeRedisTemplate;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -33,7 +34,8 @@ public class RedisDataScopeAutoConfiguration {
      * 并自动注册到规则引擎管理器
      * </p>
      */
-    @Bean
+    @Bean()
+    @Qualifier("redisDataRuleEngine")
     @ConditionalOnMissingBean(RedisDataRuleEngine.class)
     public RedisDataRuleEngine redisDataRuleEngine(DataScopeFieldConfig fieldConfig, DataRuleEngineManager engineManager) {
         log.info("Registering RedisDataRuleEngine with field config: orgId={}, deptId={}, userId={}",

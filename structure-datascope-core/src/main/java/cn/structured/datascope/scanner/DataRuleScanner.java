@@ -2,6 +2,7 @@ package cn.structured.datascope.scanner;
 
 import cn.structured.datascope.annotation.DataScopeField;
 import cn.structured.datascope.annotation.DataScopeRule;
+import cn.structured.datascope.cache.DataScopeClassCache;
 import cn.structured.datascope.engine.DataRuleEngine;
 import cn.structured.datascope.rule.ColumnRule;
 import cn.structured.datascope.rule.DataRule;
@@ -20,7 +21,8 @@ import java.util.Set;
  * 数据权限规则扫描器
  * <p>
  * 自动扫描带有 @DataScopeRule 注解的实体类，
- * 从 @DataScopeField 注解中提取列级权限规则并注册到规则引擎
+ * 从 @DataScopeField 注解中提取列级权限规则，
+ * 从 @DataScopeRow 注解中提取行级权限规则，并注册到规则引擎
  * </p>
  *
  * @author chuck
@@ -63,8 +65,10 @@ public class DataRuleScanner {
                     DataRule rule = buildRuleFromClass(clazz);
                     if (rule != null) {
                         ruleEngine.registerRule(rule);
+                        // 注册类到缓存，避免运行时反射
+                        DataScopeClassCache.register(className, rule.getResource(), null);
                         registeredCount++;
-                        log.debug("Registered data rule for class: {}", className);
+                        log.debug("Registered data rule for class: {}, resource: {}", className, rule.getResource());
                     }
                 } catch (ClassNotFoundException e) {
                     log.warn("Failed to load class for data rule: {}", bd.getBeanClassName(), e);
@@ -77,6 +81,9 @@ public class DataRuleScanner {
 
     /**
      * 从类构建数据规则
+     * <p>
+     * 注意：行级规则和列级规则现在通过 DataScopeInfo 配置，不再从注解扫描
+     * </p>
      */
     private DataRule buildRuleFromClass(Class<?> clazz) {
         DataScopeRule classAnnotation = clazz.getAnnotation(DataScopeRule.class);
@@ -87,7 +94,7 @@ public class DataRuleScanner {
         DataRule rule = new DataRule();
         rule.setResource(classAnnotation.resource());
 
-        // 扫描字段注解，构建列级规则
+        // 注解方式：扫描字段注解，构建列级规则（向后兼容）
         List<ColumnRule> columnRules = new ArrayList<>();
         Field[] fields = clazz.getDeclaredFields();
 
@@ -104,11 +111,13 @@ public class DataRuleScanner {
             log.debug("Built {} column rules for resource: {}", columnRules.size(), rule.getResource());
         }
 
+        // 注意：行级规则不再从注解扫描，而是根据 DataScopeInfo 自动生成
+
         return rule;
     }
 
     /**
-     * 从字段注解构建列级规则
+     * 从字段注解构建列级规则（向后兼容）
      */
     private ColumnRule buildColumnRule(Field field, DataScopeField annotation) {
         ColumnRule rule = new ColumnRule();

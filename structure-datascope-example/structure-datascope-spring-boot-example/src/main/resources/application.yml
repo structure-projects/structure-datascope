@@ -10,6 +10,8 @@ spring:
 structure:
   data-scope:
     enabled: true
+    auto-register-rules: true
+    auto-filter-response: true
     scan-packages:
       - cn.structured.datascope.example.dto
 

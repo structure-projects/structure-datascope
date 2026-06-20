@@ -1,7 +1,8 @@
 package cn.structured.datascope.example.controller;
 
+import cn.structure.common.entity.ResResultVO;
+import cn.structure.common.utils.ResultUtilSimpleImpl;
 import cn.structured.datascope.DataScopeContext;
-import cn.structured.datascope.example.dto.ApiResponse;
 import cn.structured.datascope.example.dto.OrderResponse;
 import cn.structured.datascope.example.service.OrderService;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,7 @@ public class OrderController {
      * </p>
      */
     @GetMapping
-    public ApiResponse<List<OrderResponse>> getOrderList() {
+    public ResResultVO<List<OrderResponse>> getOrderList() {
         log.info("GET /api/orders - Fetching order list");
 
         // 获取当前数据范围上下文信息
@@ -43,21 +44,31 @@ public class OrderController {
 
         List<OrderResponse> orders = orderService.getOrderList();
 
-        return ApiResponse.success(orders, roles);
+        return ResultUtilSimpleImpl.success(orders);
+    }
+
+    /**
+     * 获取订单列表（测试专用 - 直接返回数据）
+     * <p>
+     * 此接口用于测试数据权限过滤功能，返回不带包装的数据
+     * </p>
+     */
+    @GetMapping("/list")
+    public List<OrderResponse> getOrderListDirect() {
+        log.info("GET /api/orders/list - Fetching order list directly");
+        return orderService.getOrderList();
     }
 
     /**
      * 获取订单详情
      */
     @GetMapping("/{id}")
-    public ApiResponse<OrderResponse> getOrderById(@PathVariable Long id) {
+    public ResResultVO<OrderResponse> getOrderById(@PathVariable Long id) {
         log.info("GET /api/orders/{} - Fetching order detail", id);
-
-        List<String> roles = DataScopeContext.getRoles();
 
         OrderResponse order = orderService.getOrderById(id);
 
-        return ApiResponse.success(order, roles);
+        return ResultUtilSimpleImpl.success(order);
     }
 
     /**
@@ -67,21 +78,21 @@ public class OrderController {
      * </p>
      */
     @GetMapping("/row-condition")
-    public ApiResponse<String> getRowCondition() {
+    public ResResultVO<String> getRowCondition() {
         log.info("GET /api/orders/row-condition - Getting row condition");
 
         String condition = orderService.getRowCondition();
 
-        return ApiResponse.success(condition);
+        return ResultUtilSimpleImpl.success(condition);
     }
 
     /**
      * 获取当前数据范围上下文信息
      */
     @GetMapping("/context")
-    public ApiResponse<Object> getContext() {
+    public ResResultVO<Object> getContext() {
         log.info("GET /api/orders/context - Getting data scope context");
 
-        return ApiResponse.success(DataScopeContext.get());
+        return ResultUtilSimpleImpl.success(DataScopeContext.get());
     }
 }
