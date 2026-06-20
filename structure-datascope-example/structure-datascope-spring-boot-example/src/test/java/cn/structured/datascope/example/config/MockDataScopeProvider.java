@@ -88,19 +88,4 @@ public class MockDataScopeProvider implements DataScopeProvider {
         info.setDeptIds(Arrays.asList("1", "2", "3"));
         return info;
     }
-
-    @Override
-    public DataRule getRule(String resource, List<String> roles) {
-        return null;
-    }
-
-    @Override
-    public Map<String, DataRule> getRules(List<String> resources, List<String> roles) {
-        return Collections.emptyMap();
-    }
-
-    @Override
-    public String getType() {
-        return "mock";
-    }
 }
