@@ -53,8 +53,3 @@ jobs:
         OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
         GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: maven-artifacts-${{ env.RELEASE_VERSION }}
-        path: structure-datascope-dependencies/**/target/*
