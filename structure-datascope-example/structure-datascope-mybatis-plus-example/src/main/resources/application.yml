@@ -26,6 +26,10 @@ mybatis-plus:
 structure:
   data-scope:
     enabled: true
+    auto-register-rules: true
+    auto-filter-response: true
+    scan-packages:
+      - cn.structured.datascope.example.mybatisplus.dto
     field-config:
       org-id-field: org_id
       dept-id-field: dept_id
