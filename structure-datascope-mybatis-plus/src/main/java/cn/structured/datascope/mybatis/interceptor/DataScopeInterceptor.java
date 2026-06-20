@@ -15,8 +15,6 @@ import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * 数据权限SQL拦截器
@@ -30,14 +28,6 @@ import java.util.regex.Pattern;
 public class DataScopeInterceptor implements InnerInterceptor {
 
     private final DataScopeFieldConfig fieldConfig;
-
-    /**
-     * 匹配 FROM 子句后的表名（支持 schema.table 和别名）
-     */
-    private static final Pattern FROM_TABLE_PATTERN = Pattern.compile(
-            "\\s+from\\s+([`\"']?\\w+[`\"']?)(?:\\s+(?:as\\s+)?[`\"']?\\w+[`\"']?)?\\s*",
-            Pattern.CASE_INSENSITIVE
-    );
 
     public DataScopeInterceptor(DataScopeFieldConfig fieldConfig) {
         this.fieldConfig = fieldConfig;
@@ -74,7 +64,7 @@ public class DataScopeInterceptor implements InnerInterceptor {
         String dataScopeCondition = buildDataScopeCondition(tableAlias);
 
         // 注入数据权限条件到SQL
-        String modifiedSql = injectDataScopeCondition(originalSql, dataScopeCondition, tableInfo.whereStartIndex);
+        String modifiedSql = injectDataScopeCondition(originalSql, dataScopeCondition, tableInfo.insertPosition);
 
         log.debug("Original SQL: {}", originalSql);
         log.debug("Modified SQL: {}", modifiedSql);
@@ -91,29 +81,144 @@ public class DataScopeInterceptor implements InnerInterceptor {
 
     /**
      * 从SQL中提取表名和别名
+     * <p>
+     * 支持格式：
+     * - FROM orders
+     * - FROM orders o
+     * - FROM orders AS o
+     * - FROM orders, users
+     * - FROM orders o LEFT JOIN users u ON ...
+     * </p>
      */
     private TableInfo extractTableInfo(String sql) {
-        Matcher matcher = FROM_TABLE_PATTERN.matcher(sql);
-        if (matcher.find()) {
-            String tableName = matcher.group(1).replace("`", "").replace("\"", "").replace("'", "");
-            int whereStartIndex = matcher.end();
-            // 检查是否有别名
-            String afterFrom = sql.substring(matcher.start(), matcher.end());
-            String alias = null;
-            
-            // 尝试匹配别名
-            Pattern aliasPattern = Pattern.compile(
-                    "\\s+(?:as\\s+)?([`\"']?\\w+[`\"']?)\\s+",
-                    Pattern.CASE_INSENSITIVE
-            );
-            Matcher aliasMatcher = aliasPattern.matcher(afterFrom);
-            if (aliasMatcher.find()) {
-                alias = aliasMatcher.group(1).replace("`", "").replace("\"", "").replace("'", "");
-            }
-            
-            return new TableInfo(tableName, alias, whereStartIndex);
+        String lowerSql = sql.toLowerCase();
+        int fromIndex = lowerSql.indexOf(" from ");
+
+        if (fromIndex == -1) {
+            return null;
         }
-        return null;
+
+        // 从 FROM 之后开始解析
+        String afterFrom = sql.substring(fromIndex + 6).trim();
+        int afterFromIndex = fromIndex + 6;
+
+        // 提取表名（跳过引号和空白，找到第一个词）
+        String tableName = extractFirstWord(afterFrom);
+
+        if (tableName == null || tableName.isEmpty()) {
+            return null;
+        }
+
+        // 检查是否提取到了关键字（错误情况）
+        if (isSqlKeyword(tableName.toLowerCase())) {
+            log.warn("Extracted table name '{}' is a SQL keyword, skipping", tableName);
+            return null;
+        }
+
+        // 计算表名结束位置（在原始SQL中的位置）
+        int tableNameEnd = tableName.length();
+        String afterTable = afterFrom.substring(tableNameEnd).trim();
+        String alias = null;
+        int aliasEnd = -1;
+
+        // 跳过 AS 关键字
+        if (afterTable.toLowerCase().startsWith("as ")) {
+            afterTable = afterTable.substring(3).trim();
+        } else if (afterTable.toLowerCase().startsWith("as")) {
+            afterTable = afterTable.substring(2).trim();
+        }
+
+        // 检查是否有别名（下一个词不是SQL关键字）
+        if (!afterTable.isEmpty()) {
+            String nextWord = extractFirstWord(afterTable);
+            if (nextWord != null && !isSqlKeyword(nextWord.toLowerCase()) && !nextWord.equals(",")) {
+                alias = nextWord;
+                // 别名结束位置 = afterFrom中表名后的位置 + 别名在afterTable中的偏移量
+                int afterTableNameOffset = tableNameEnd + (afterFrom.length() - afterTable.length());
+                aliasEnd = afterFromIndex + afterTableNameOffset + nextWord.length();
+            }
+        }
+
+        // 计算插入位置：表名之后（或别名之后）
+        int insertPosition;
+        if (alias != null && aliasEnd > 0) {
+            insertPosition = aliasEnd;
+        } else {
+            insertPosition = afterFromIndex + tableNameEnd;
+        }
+
+        // 验证插入位置不超过SQL长度
+        if (insertPosition > sql.length()) {
+            insertPosition = sql.length();
+        }
+
+        return new TableInfo(tableName, alias, insertPosition);
+    }
+
+    /**
+     * 提取字符串中的第一个单词
+     */
+    private String extractFirstWord(String str) {
+        if (str == null || str.isEmpty()) {
+            return null;
+        }
+
+        str = str.trim();
+
+        // 跳过空白
+        int start = 0;
+        while (start < str.length() && Character.isWhitespace(str.charAt(start))) {
+            start++;
+        }
+
+        if (start >= str.length()) {
+            return null;
+        }
+
+        // 检查是否以引号开头
+        char firstChar = str.charAt(start);
+        if (firstChar == '`' || firstChar == '"' || firstChar == '\'') {
+            int end = start + 1;
+            while (end < str.length() && str.charAt(end) != firstChar) {
+                end++;
+            }
+            if (end < str.length()) {
+                return str.substring(start + 1, end);
+            }
+            return null;
+        }
+
+        // 普通单词：找到空白或标点符号
+        int end = start;
+        while (end < str.length() && !Character.isWhitespace(str.charAt(end))
+                && str.charAt(end) != ',' && str.charAt(end) != '(' && str.charAt(end) != ')') {
+            end++;
+        }
+
+        return str.substring(start, end);
+    }
+
+    /**
+     * 检查是否是 SQL 关键字
+     */
+    private boolean isSqlKeyword(String word) {
+        if (word == null) {
+            return false;
+        }
+        // 精确匹配
+        String lower = word.toLowerCase();
+        return "from".equals(lower) || "select".equals(lower) ||
+                "where".equals(lower) || "order".equals(lower) ||
+                "group".equals(lower) || "having".equals(lower) ||
+                "limit".equals(lower) || "join".equals(lower) ||
+                "inner".equals(lower) || "left".equals(lower) ||
+                "right".equals(lower) || "cross".equals(lower) ||
+                "on".equals(lower) || "and".equals(lower) ||
+                "or".equals(lower) || "union".equals(lower) ||
+                "as".equals(lower) || "not".equals(lower) ||
+                "in".equals(lower) || "exists".equals(lower) ||
+                "between".equals(lower) || "like".equals(lower) ||
+                "is".equals(lower) || "null".equals(lower);
     }
 
     /**
@@ -143,14 +248,13 @@ public class DataScopeInterceptor implements InnerInterceptor {
     /**
      * 将数据权限条件注入到SQL中
      */
-    private String injectDataScopeCondition(String originalSql, String dataScopeCondition, int afterFromIndex) {
+    private String injectDataScopeCondition(String originalSql, String dataScopeCondition, int afterTableIndex) {
         String lowerSql = originalSql.toLowerCase();
-        int whereIndex = lowerSql.indexOf(" where ", afterFromIndex);
+        int whereIndex = lowerSql.indexOf(" where ", afterTableIndex);
 
         if (whereIndex == -1) {
-            // 没有WHERE子句，在FROM后面添加WHERE
-            int insertPos = findInsertPosition(originalSql, afterFromIndex);
-            return originalSql.substring(0, insertPos) + " WHERE " + dataScopeCondition + originalSql.substring(insertPos);
+            // 没有WHERE子句，在表名/别名之后添加WHERE
+            return originalSql.substring(0, afterTableIndex) + " WHERE " + dataScopeCondition + originalSql.substring(afterTableIndex);
         } else {
             // 有WHERE子句，在WHERE后面添加AND条件
             int afterWherePos = whereIndex + 7;
@@ -159,37 +263,17 @@ public class DataScopeInterceptor implements InnerInterceptor {
     }
 
     /**
-     * 找到在FROM子句后的合适插入位置
-     */
-    private int findInsertPosition(String sql, int afterFromIndex) {
-        // 跳过表名和可能的别名，找到下一个关键字的位置
-        String remaining = sql.substring(afterFromIndex).toLowerCase();
-        
-        String[] keywords = {"where", "order by", "group by", "limit", "having", "union", "inner join", "left join", "right join", "cross join"};
-        int earliestPos = sql.length();
-        
-        for (String keyword : keywords) {
-            int pos = remaining.indexOf(keyword);
-            if (pos != -1 && pos < earliestPos) {
-                earliestPos = afterFromIndex + pos;
-            }
-        }
-        
-        return earliestPos;
-    }
-
-    /**
      * 表信息内部类
      */
     private static class TableInfo {
         final String tableName;
         final String alias;
-        final int whereStartIndex;
+        final int insertPosition;
 
-        TableInfo(String tableName, String alias, int whereStartIndex) {
+        TableInfo(String tableName, String alias, int insertPosition) {
             this.tableName = tableName;
             this.alias = alias;
-            this.whereStartIndex = whereStartIndex;
+            this.insertPosition = insertPosition;
         }
     }
 }
