@@ -13,7 +13,7 @@
     <packaging>jar</packaging>
     <name>structure-datascope-job-example</name>
     <artifactId>structure-datascope-job-example</artifactId>
-    <description>数据范围管理Job示例</description>
+    <description>数据范围管理Job场景示例（XXL-JOB调度任务）</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,10 +22,21 @@
     </properties>
 
     <dependencies>
+        <!-- 数据权限核心依赖 -->
         <dependency>
             <groupId>cn.structured</groupId>
-            <artifactId>structure-datascope-job</artifactId>
+            <artifactId>structure-datascope-starter</artifactId>
             <version>${revision}</version>
+        </dependency>
+        <!-- XXL-JOB 调度框架 -->
+        <dependency>
+            <groupId>com.xuxueli</groupId>
+            <artifactId>xxl-job-core</artifactId>
+            <version>2.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

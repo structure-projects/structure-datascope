@@ -21,4 +21,26 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencies>
+        <!-- 依赖核心模块 -->
+        <dependency>
+            <groupId>cn.structured</groupId>
+            <artifactId>structure-datascope-core</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <!-- MyBatis-Plus依赖 -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- MyBatis依赖 -->
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>

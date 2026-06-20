@@ -1,28 +1,39 @@
 package cn.structured.datascope.config;
 
-import cn.structured.datascope.DataScopeContext;
-import cn.structured.datascope.DataScopeInfo;
-import jakarta.servlet.Filter;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.HttpServletRequest;
+import cn.structured.datascope.engine.DataRuleEngine;
+import cn.structured.datascope.engine.DataRuleEngineManager;
+import cn.structured.datascope.engine.impl.DefaultDataRuleEngine;
+import cn.structured.datascope.engine.impl.DefaultDataRuleEngineManager;
+import cn.structured.datascope.filter.DataScopeContextFilter;
+import cn.structured.datascope.provider.DataScopeProvider;
+import cn.structured.datascope.provider.DefaultDataScopeProviderImpl;
+import cn.structured.datascope.provider.RemoteDataScopeProvider;
+import cn.structured.datascope.scanner.DataRuleScanner;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * 数据范围自动配置类
  * <p>
- * 仅在 Web 应用环境下启用
+ * 完成数据权限上下文的完整初始化，包括：
+ * 1. 字段配置 Bean
+ * 2. 数据规则引擎（使用字段配置）
+ * 3. 数据权限提供器（用户自定义实现）
+ * 4. 数据范围路由组件
+ * 5. HTTP过滤器（请求结束后自动清理上下文）
+ * </p>
+ * <p>
+ * 数据权限获取方式：
+ * - 通过 userId 去本地数据源获取（local模式）
+ * - 通过 userId 去远程权限服务获取（remote模式）
  * </p>
  */
 @Slf4j
@@ -39,85 +50,114 @@ public class DataScopeAutoConfiguration {
     }
 
     /**
-     * 注册数据范围过滤器
+     * 注册字段配置 Bean
      * <p>
-     * 该过滤器会自动从请求头中提取数据范围信息并设置到上下文中，
-     * 请求结束后自动清除上下文避免内存泄漏
+     * 用于配置数据权限隔离时使用的字段名称（如 orgId、deptId、userId）
      * </p>
      */
     @Bean
-    public Filter dataScopeFilter() {
-        log.info("Registering DataScopeFilter...");
-        return new Filter() {
-            @Override
-            public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-                    throws IOException, ServletException {
-                try {
-                    HttpServletRequest httpRequest = (HttpServletRequest) request;
+    @ConditionalOnMissingBean(DataScopeFieldConfig.class)
+    public DataScopeFieldConfig dataScopeFieldConfig() {
+        DataScopeFieldConfig fieldConfig = properties.getFieldConfig();
+        if (fieldConfig == null) {
+            fieldConfig = new DataScopeFieldConfig();
+        }
+        log.info("Registering DataScopeFieldConfig: orgIdField={}, deptIdField={}, userIdField={}",
+                fieldConfig.getOrgIdField(),
+                fieldConfig.getDeptIdField(),
+                fieldConfig.getUserIdField());
+        return fieldConfig;
+    }
 
-                    DataScopeInfo info = new DataScopeInfo();
+    /**
+     * 注册数据规则引擎管理器
+     * <p>
+     * 用于统一管理多个数据规则引擎实现
+     * </p>
+     */
+    @Bean
+    @ConditionalOnMissingBean(DataRuleEngineManager.class)
+    public DataRuleEngineManager dataRuleEngineManager() {
+        log.info("Registering DataRuleEngineManager...");
+        return new DefaultDataRuleEngineManager();
+    }
 
-                    // 从请求头中提取数据范围ID
-                    String dataScopeId = httpRequest.getHeader(properties.getHeaderName());
-                    if (dataScopeId != null) {
-                        info.setDataScopeId(dataScopeId);
-                    }
+    /**
+     * 注册默认数据规则引擎
+     * <p>
+     * 默认引擎用于处理通用规则场景，并自动注册到管理器
+     * </p>
+     */
+    @Bean
+    @ConditionalOnMissingBean(DataRuleEngine.class)
+    public DataRuleEngine dataRuleEngine(DataScopeFieldConfig fieldConfig, DataRuleEngineManager engineManager) {
+        log.info("Registering default DataRuleEngine with field config...");
+        DataRuleEngine engine = new DefaultDataRuleEngine(fieldConfig);
+        engineManager.registerEngine("default", engine);
+        return engine;
+    }
 
-                    // 从请求头中提取角色列表
-                    String rolesHeader = httpRequest.getHeader(properties.getRoleHeaderName());
-                    if (rolesHeader != null && !rolesHeader.isEmpty()) {
-                        List<String> roles = Arrays.asList(rolesHeader.split(","));
-                        info.setRoles(roles);
-                    } else {
-                        info.setRoles(Collections.emptyList());
-                    }
+    /**
+     * 注册远程数据权限提供器
+     * <p>
+     * 当配置了 remote.serviceUrl 时启用，通过 HTTP 调用远程权限服务获取数据权限信息
+     * </p>
+     */
+    @Bean
+    @ConditionalOnMissingBean(DataScopeProvider.class)
+    @ConditionalOnProperty(prefix = "structure.data-scope.remote", name = "service-url", matchIfMissing = false)
+    public DataScopeProvider remoteDataScopeProvider() {
+        log.info("Registering RemoteDataScopeProvider, remote service URL: {}", properties.getRemote().getServiceUrl());
+        return new RemoteDataScopeProvider(properties.getRemote());
+    }
 
-                    // 从请求头中提取权限列表
-                    String permissionsHeader = httpRequest.getHeader(properties.getPermissionHeaderName());
-                    if (permissionsHeader != null && !permissionsHeader.isEmpty()) {
-                        List<String> permissions = Arrays.asList(permissionsHeader.split(","));
-                        info.setPermissions(permissions);
-                    } else {
-                        info.setPermissions(Collections.emptyList());
-                    }
+    /**
+     * 注册默认数据权限提供器
+     * <p>
+     * 当用户未自定义 DataScopeProvider 且未配置远程服务时启用
+     * </p>
+     */
+    @Bean
+    @ConditionalOnMissingBean(DataScopeProvider.class)
+    @ConditionalOnProperty(prefix = "structure.data-scope.remote", name = "service-url", matchIfMissing = true)
+    public DataScopeProvider defaultDataScopeProvider() {
+        log.info("Registering default DataScopeProvider (DefaultDataScopeProviderImpl)");
+        return new DefaultDataScopeProviderImpl();
+    }
 
-                    // 从请求头中提取组织ID
-                    String orgId = httpRequest.getHeader(properties.getOrgIdHeaderName());
-                    if (orgId != null) {
-                        info.setOrgId(orgId);
-                    }
+    /**
+     * 注册数据规则扫描器
+     * <p>
+     * 自动扫描带有 @DataScopeRule 注解的实体类并注册规则到管理器
+     * </p>
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "structure.data-scope", name = "auto-register-rules", havingValue = "true", matchIfMissing = true)
+    public DataRuleScanner dataRuleScanner(DataRuleEngineManager engineManager) {
+        String[] scanPackages = properties.getScanPackages();
+        log.info("Registering DataRuleScanner with packages: {}", Arrays.toString(scanPackages));
+        DataRuleScanner dataRuleScanner = new DataRuleScanner(engineManager.getDefaultEngine(), scanPackages);
+        dataRuleScanner.scanAndRegister();
+        return dataRuleScanner;
+    }
 
-                    // 从请求头中提取部门ID列表
-                    String deptIdsHeader = httpRequest.getHeader(properties.getDeptIdsHeaderName());
-                    if (deptIdsHeader != null && !deptIdsHeader.isEmpty()) {
-                        List<String> deptIds = Arrays.asList(deptIdsHeader.split(","));
-                        info.setDeptIds(deptIds);
-                    }
-
-                    // 从请求头中提取用户ID
-                    String userId = httpRequest.getHeader(properties.getUserIdHeaderName());
-                    if (userId != null) {
-                        info.setUserId(userId);
-                    }
-
-                    // 设置数据范围上下文
-                    DataScopeContext.set(info);
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("DataScope context set from headers: dataScopeId={}, roles={}, permissions={}, orgId={}, userId={}",
-                                info.getDataScopeId(), info.getRoles(), info.getPermissions(), info.getOrgId(), info.getUserId());
-                    }
-
-                    // 继续执行请求链
-                    chain.doFilter(request, response);
-                } finally {
-                    // 请求结束后清除上下文，避免内存泄漏
-                    DataScopeContext.remove();
-                    if (log.isTraceEnabled()) {
-                        log.trace("DataScope context cleared after request completion");
-                    }
-                }
-            }
-        };
+    /**
+     * 注册数据范围上下文过滤器
+     * <p>
+     * 从HTTP请求头提取数据权限信息并设置到上下文，
+     * 请求处理完成后自动清理上下文。
+     * </p>
+     */
+    @Bean
+    @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+    public FilterRegistrationBean<DataScopeContextFilter> dataScopeContextFilter(
+            @org.springframework.beans.factory.annotation.Autowired(required = false) DataScopeProvider dataScopeProvider) {
+        log.info("Registering DataScopeContextFilter...");
+        FilterRegistrationBean<DataScopeContextFilter> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(new DataScopeContextFilter(properties, dataScopeProvider));
+        registrationBean.addUrlPatterns("/*");
+        registrationBean.setName("dataScopeContextFilter");
+        registrationBean.setOrder(Integer.MAX_VALUE); // 最后执行
+        return registrationBean;
     }
 }

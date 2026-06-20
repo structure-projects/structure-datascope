@@ -244,4 +244,62 @@ public class DataScopeContext {
         }
         info.setUserId(userId);
     }
+
+    /**
+     * 批量设置数据范围上下文信息
+     * <p>
+     * 直接设置完整的 DataScopeInfo 对象，简化调用
+     * </p>
+     *
+     * @param info 数据范围上下文信息
+     */
+    public static void setInfo(DataScopeInfo info) {
+        if (info == null) {
+            remove();
+            return;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Setting DataScope info: {}", info);
+        }
+        CONTEXT.set(info);
+    }
+
+    /**
+     * 获取完整的数据范围上下文信息
+     *
+     * @return DataScopeInfo 对象，可能为 null
+     */
+    public static DataScopeInfo getInfo() {
+        return CONTEXT.get();
+    }
+
+    /**
+     * 获取组织ID
+     *
+     * @return 组织ID，可能为 null
+     */
+    public static String getOrgId() {
+        DataScopeInfo info = get();
+        return info != null ? info.getOrgId() : null;
+    }
+
+    /**
+     * 获取部门ID列表
+     *
+     * @return 部门ID列表，永远不为 null（为空时返回空列表）
+     */
+    public static List<String> getDeptIds() {
+        DataScopeInfo info = get();
+        return info != null && info.getDeptIds() != null ? info.getDeptIds() : new ArrayList<>();
+    }
+
+    /**
+     * 获取用户ID
+     *
+     * @return 用户ID，可能为 null
+     */
+    public static String getUserId() {
+        DataScopeInfo info = get();
+        return info != null ? info.getUserId() : null;
+    }
 }

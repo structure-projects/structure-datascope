@@ -1,0 +1,25 @@
+# DataScope Redis 示例配置
+server:
+  port: 8082
+
+spring:
+  application:
+    name: data-scope-redis-example
+  data:
+    redis:
+      host: 172.24.20.15
+      port: 6379
+      password: 123456
+
+# 数据范围管理配置
+structure:
+  data-scope:
+    enabled: true
+    scan-packages:
+      - cn.structured.datascope.example.redis.dto
+
+logging:
+  level:
+    cn.structured.datascope: DEBUG
+    cn.structured.datascope.example.redis: DEBUG
+    root: INFO

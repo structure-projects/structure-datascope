@@ -1,5 +1,8 @@
 package cn.structured.datascope.example;
 
+import cn.structured.datascope.DataScopeContext;
+import cn.structured.datascope.DataScopeInfo;
+import cn.structured.datascope.example.config.MockDataScopeProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * 数据权限集成测试
  * <p>
- * 测试 Starter 的自动配置和 Filter 功能
+ * 测试 Starter 的自动配置和 DataScopeProvider 功能
  * </p>
  */
 @ExtendWith(SpringExtension.class)
@@ -26,14 +29,12 @@ class DataScopeIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private MockDataScopeProvider dataScopeProvider;
 
     @Test
     void testDataScopeFilter_Employee() throws Exception {
         mockMvc.perform(get("/api/orders")
-                        .header("X-DataScope-Id", "scope-employee")
-                        .header("X-DataScope-Roles", "EMPLOYEE")
-                        .header("X-Org-Id", "10")
-                        .header("X-Dept-Ids", "1,2,3")
                         .header("X-User-Id", "user-001"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -48,10 +49,6 @@ class DataScopeIntegrationTest {
     @Test
     void testDataScopeFilter_Finance() throws Exception {
         mockMvc.perform(get("/api/orders")
-                        .header("X-DataScope-Id", "scope-finance")
-                        .header("X-DataScope-Roles", "FINANCE")
-                        .header("X-Org-Id", "10")
-                        .header("X-Dept-Ids", "1,2,3")
                         .header("X-User-Id", "user-002"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -65,10 +62,6 @@ class DataScopeIntegrationTest {
     @Test
     void testDataScopeFilter_Admin() throws Exception {
         mockMvc.perform(get("/api/orders")
-                        .header("X-DataScope-Id", "scope-admin")
-                        .header("X-DataScope-Roles", "SYS_ADMIN")
-                        .header("X-Org-Id", "10")
-                        .header("X-Dept-Ids", "1,2,3")
                         .header("X-User-Id", "user-003"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -82,10 +75,6 @@ class DataScopeIntegrationTest {
     @Test
     void testDataScopeFilter_MultiRoles() throws Exception {
         mockMvc.perform(get("/api/orders")
-                        .header("X-DataScope-Id", "scope-multi")
-                        .header("X-DataScope-Roles", "EMPLOYEE,FINANCE")
-                        .header("X-Org-Id", "10")
-                        .header("X-Dept-Ids", "1,2,3")
                         .header("X-User-Id", "user-004"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -95,10 +84,6 @@ class DataScopeIntegrationTest {
     @Test
     void testGetRowCondition() throws Exception {
         mockMvc.perform(get("/api/orders/row-condition")
-                        .header("X-DataScope-Id", "scope-test")
-                        .header("X-DataScope-Roles", "SYS_ADMIN")
-                        .header("X-Org-Id", "10")
-                        .header("X-Dept-Ids", "1,2,3")
                         .header("X-User-Id", "user-005"))
                 .andExpect(status().isOk())
                 .andDo(result -> System.out.println("Row condition: " + result.getResponse().getContentAsString()));
@@ -107,9 +92,6 @@ class DataScopeIntegrationTest {
     @Test
     void testGetContext() throws Exception {
         mockMvc.perform(get("/api/orders/context")
-                        .header("X-DataScope-Id", "scope-test")
-                        .header("X-DataScope-Roles", "ADMIN")
-                        .header("X-Org-Id", "10")
                         .header("X-User-Id", "user-006"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))

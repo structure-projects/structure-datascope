@@ -19,32 +19,52 @@ public class DataScopeProperties {
     private boolean enabled = true;
 
     /**
-     * 数据范围ID的请求头名称
+     * 提供器类型：remote（远程权限服务）/ local（本地数据源）
      */
-    private String headerName = "X-DataScope-Id";
+    private String providerType = "local";
 
     /**
-     * 角色列表的请求头名称（多个角色用逗号分隔）
+     * 远程服务配置
      */
-    private String roleHeaderName = "X-DataScope-Roles";
+    private RemoteConfig remote = new RemoteConfig();
 
     /**
-     * 权限列表的请求头名称（多个权限用逗号分隔）
+     * 是否自动注册默认规则
      */
-    private String permissionHeaderName = "X-DataScope-Permissions";
+    private boolean autoRegisterRules = true;
 
     /**
-     * 组织ID的请求头名称
+     * userId
      */
-    private String orgIdHeaderName = "X-Org-Id";
+    private String userId = "userId";
 
     /**
-     * 部门ID列表的请求头名称（多个部门用逗号分隔）
+     * 规则扫描包路径
+     * <p>
+     * 用于扫描带有 @DataScopeRule 注解的实体类并自动注册规则
+     * </p>
      */
-    private String deptIdsHeaderName = "X-Dept-Ids";
+    private String[] scanPackages = new String[0];
+
 
     /**
-     * 用户ID的请求头名称
+     * 字段配置
      */
-    private String userIdHeaderName = "X-User-Id";
+    private DataScopeFieldConfig fieldConfig;
+
+    /**
+     * 远程服务配置
+     */
+    @Data
+    public static class RemoteConfig {
+        /**
+         * 远程权限服务地址
+         */
+        private String serviceUrl = "http://datascope-service:8080";
+
+        /**
+         * 请求超时时间（毫秒）
+         */
+        private int timeout = 5000;
+    }
 }

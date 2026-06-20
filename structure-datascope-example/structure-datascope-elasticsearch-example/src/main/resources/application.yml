@@ -1,0 +1,23 @@
+# DataScope Elasticsearch 示例配置
+server:
+  port: 8086
+
+spring:
+  application:
+    name: data-scope-elasticsearch-example
+  elasticsearch:
+    uris: http://localhost:9200
+
+# 数据范围管理配置
+structure:
+  data-scope:
+    enabled: true
+    field-config:
+      org-id-field: orgId
+      dept-id-field: deptId
+
+logging:
+  level:
+    cn.structured.datascope: DEBUG
+    cn.structured.datascope.example.elasticsearch: DEBUG
+    root: INFO

@@ -3,6 +3,7 @@ package cn.structured.datascope.example;
 import cn.structured.datascope.DataScopeContext;
 import cn.structured.datascope.DataScopeInfo;
 import cn.structured.datascope.engine.DataRuleEngine;
+import cn.structured.datascope.engine.impl.DefaultDataRuleEngine;
 import cn.structured.datascope.rule.ColumnRule;
 import cn.structured.datascope.rule.DataRule;
 import cn.structured.datascope.rule.RowRule;
@@ -36,6 +37,12 @@ public class DataScopeCoreExampleApplication {
         log.info("Starting DataScope Core Example Application...");
         SpringApplication.run(DataScopeCoreExampleApplication.class, args);
         log.info("DataScope Core Example Application started successfully");
+    }
+
+    @Bean
+    public DataRuleEngine dataRuleEngine() {
+        log.info("Registering DataRuleEngine...");
+        return new DefaultDataRuleEngine();
     }
 
     /**

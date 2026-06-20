@@ -29,12 +29,7 @@ public class OrderController {
     /**
      * 获取订单列表
      * <p>
-     * 通过请求头传递数据范围信息：
-     * - X-DataScope-Id: 数据范围ID
-     * - X-DataScope-Roles: 用户角色（多个用逗号分隔）
-     * - X-Org-Id: 组织ID
-     * - X-Dept-Ids: 部门ID列表
-     * - X-User-Id: 用户ID
+     * 数据权限信息通过 DataScopeProvider 自动获取
      * </p>
      */
     @GetMapping

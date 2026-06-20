@@ -21,4 +21,19 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencies>
+        <!-- 依赖核心模块 -->
+        <dependency>
+            <groupId>cn.structured</groupId>
+            <artifactId>structure-datascope-starter</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <!-- Spring Boot Redis Starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
 </project>

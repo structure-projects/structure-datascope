@@ -1,0 +1,19 @@
+# DataScope Job 示例配置
+server:
+  port: 8085
+
+spring:
+  application:
+    name: data-scope-job-example
+
+# 数据范围管理配置
+structure:
+  data-scope:
+    enabled: true
+    field-config:
+
+logging:
+  level:
+    cn.structured.datascope: DEBUG
+    cn.structured.datascope.example.job: DEBUG
+    root: INFO

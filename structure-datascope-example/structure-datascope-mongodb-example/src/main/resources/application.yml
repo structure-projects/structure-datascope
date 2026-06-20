@@ -1,0 +1,24 @@
+# DataScope MongoDB 示例配置
+server:
+  port: 8084
+
+spring:
+  application:
+    name: data-scope-mongodb-example
+  mongodb:
+    host: 172.24.20.15
+    port: 27017
+    username: root
+    password: 123456
+    authentication-database: admin
+
+# 数据范围管理配置
+structure:
+  data-scope:
+    enabled: true
+
+logging:
+  level:
+    cn.structured.datascope: DEBUG
+    cn.structured.datascope.example.mongodb: DEBUG
+    root: INFO

@@ -1,6 +1,7 @@
 package cn.structured.datascope;
 
 import cn.structured.datascope.engine.DataRuleEngine;
+import cn.structured.datascope.engine.impl.DefaultDataRuleEngine;
 import cn.structured.datascope.rule.ColumnRule;
 import cn.structured.datascope.rule.DataRule;
 import cn.structured.datascope.rule.RowRule;
@@ -20,7 +21,7 @@ class DataRuleEngineTest {
 
     @BeforeEach
     void setUp() {
-        engine = new DataRuleEngine();
+        engine = new DefaultDataRuleEngine();
         DataScopeContext.remove();
     }
 
