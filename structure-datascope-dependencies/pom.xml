@@ -20,11 +20,9 @@
         <module>../structure-datascope-core</module>
         <module>../structure-datascope-starter</module>
         <module>../structure-datascope-mybatis-plus</module>
-        <module>../structure-datascope-message</module>
         <module>../structure-datascope-elasticsearch</module>
         <module>../structure-datascope-redis</module>
         <module>../structure-datascope-mongodb</module>
-        <module>../structure-datascope-job</module>
     </modules>
 
     <properties>
