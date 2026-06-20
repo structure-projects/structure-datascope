@@ -15,11 +15,6 @@ import java.util.List;
 public class DataScopeInfo {
 
     /**
-     * 数据范围ID
-     */
-    private String dataScopeId;
-    
-    /**
      * 用户角色列表
      */
     private List<String> roles = new ArrayList<>();

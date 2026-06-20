@@ -22,7 +22,6 @@ public class MockDataScopeProvider implements DataScopeProvider {
         // 员工用户
         DataScopeInfo employeeInfo = new DataScopeInfo();
         employeeInfo.setUserId("user-001");
-        employeeInfo.setDataScopeId("scope-employee");
         employeeInfo.setRoles(Arrays.asList("EMPLOYEE"));
         employeeInfo.setOrgId("10");
         employeeInfo.setDeptIds(Arrays.asList("1", "2", "3"));
@@ -31,7 +30,6 @@ public class MockDataScopeProvider implements DataScopeProvider {
         // 财务用户
         DataScopeInfo financeInfo = new DataScopeInfo();
         financeInfo.setUserId("user-002");
-        financeInfo.setDataScopeId("scope-finance");
         financeInfo.setRoles(Arrays.asList("FINANCE"));
         financeInfo.setOrgId("10");
         financeInfo.setDeptIds(Arrays.asList("1", "2", "3"));
@@ -40,7 +38,6 @@ public class MockDataScopeProvider implements DataScopeProvider {
         // 管理员用户
         DataScopeInfo adminInfo = new DataScopeInfo();
         adminInfo.setUserId("user-003");
-        adminInfo.setDataScopeId("scope-admin");
         adminInfo.setRoles(Arrays.asList("SYS_ADMIN"));
         adminInfo.setOrgId("10");
         adminInfo.setDeptIds(Arrays.asList("1", "2", "3"));
@@ -49,7 +46,6 @@ public class MockDataScopeProvider implements DataScopeProvider {
         // 多角色用户
         DataScopeInfo multiInfo = new DataScopeInfo();
         multiInfo.setUserId("user-004");
-        multiInfo.setDataScopeId("scope-multi");
         multiInfo.setRoles(Arrays.asList("EMPLOYEE", "FINANCE"));
         multiInfo.setOrgId("10");
         multiInfo.setDeptIds(Arrays.asList("1", "2", "3"));
@@ -58,7 +54,6 @@ public class MockDataScopeProvider implements DataScopeProvider {
         // 测试用户
         DataScopeInfo testInfo = new DataScopeInfo();
         testInfo.setUserId("user-005");
-        testInfo.setDataScopeId("scope-test");
         testInfo.setRoles(Arrays.asList("SYS_ADMIN"));
         testInfo.setOrgId("10");
         testInfo.setDeptIds(Arrays.asList("1", "2", "3"));
@@ -67,7 +62,6 @@ public class MockDataScopeProvider implements DataScopeProvider {
         // 管理员用户 (user-006)
         DataScopeInfo adminInfo2 = new DataScopeInfo();
         adminInfo2.setUserId("user-006");
-        adminInfo2.setDataScopeId("scope-test");
         adminInfo2.setRoles(Arrays.asList("ADMIN"));
         adminInfo2.setOrgId("10");
         adminInfo2.setDeptIds(Arrays.asList("1", "2", "3"));
@@ -82,7 +76,6 @@ public class MockDataScopeProvider implements DataScopeProvider {
     private DataScopeInfo createDefaultInfo(String userId) {
         DataScopeInfo info = new DataScopeInfo();
         info.setUserId(userId);
-        info.setDataScopeId("scope-default");
         info.setRoles(Arrays.asList("EMPLOYEE"));
         info.setOrgId("10");
         info.setDeptIds(Arrays.asList("1", "2", "3"));

@@ -4,17 +4,14 @@ import cn.structured.datascope.engine.DataRuleEngine;
 import cn.structured.datascope.engine.DataRuleEngineManager;
 import cn.structured.datascope.engine.impl.DefaultDataRuleEngine;
 import cn.structured.datascope.engine.impl.DefaultDataRuleEngineManager;
-import cn.structured.datascope.filter.DataScopeContextFilter;
 import cn.structured.datascope.provider.DataScopeProvider;
 import cn.structured.datascope.provider.DefaultDataScopeProviderImpl;
-import cn.structured.datascope.provider.RemoteDataScopeProvider;
 import cn.structured.datascope.scanner.DataRuleScanner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -98,20 +95,6 @@ public class DataScopeAutoConfiguration {
     }
 
     /**
-     * 注册远程数据权限提供器
-     * <p>
-     * 当配置了 remote.serviceUrl 时启用，通过 HTTP 调用远程权限服务获取数据权限信息
-     * </p>
-     */
-    @Bean
-    @ConditionalOnMissingBean(DataScopeProvider.class)
-    @ConditionalOnProperty(prefix = "structure.data-scope.remote", name = "service-url", matchIfMissing = false)
-    public DataScopeProvider remoteDataScopeProvider() {
-        log.info("Registering RemoteDataScopeProvider, remote service URL: {}", properties.getRemote().getServiceUrl());
-        return new RemoteDataScopeProvider(properties.getRemote());
-    }
-
-    /**
      * 注册默认数据权限提供器
      * <p>
      * 当用户未自定义 DataScopeProvider 且未配置远程服务时启用
@@ -119,7 +102,6 @@ public class DataScopeAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(DataScopeProvider.class)
-    @ConditionalOnProperty(prefix = "structure.data-scope.remote", name = "service-url", matchIfMissing = true)
     public DataScopeProvider defaultDataScopeProvider() {
         log.info("Registering default DataScopeProvider (DefaultDataScopeProviderImpl)");
         return new DefaultDataScopeProviderImpl();
@@ -139,25 +121,5 @@ public class DataScopeAutoConfiguration {
         DataRuleScanner dataRuleScanner = new DataRuleScanner(engineManager.getDefaultEngine(), scanPackages);
         dataRuleScanner.scanAndRegister();
         return dataRuleScanner;
-    }
-
-    /**
-     * 注册数据范围上下文过滤器
-     * <p>
-     * 从HTTP请求头提取数据权限信息并设置到上下文，
-     * 请求处理完成后自动清理上下文。
-     * </p>
-     */
-    @Bean
-    @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-    public FilterRegistrationBean<DataScopeContextFilter> dataScopeContextFilter(
-            @org.springframework.beans.factory.annotation.Autowired(required = false) DataScopeProvider dataScopeProvider) {
-        log.info("Registering DataScopeContextFilter...");
-        FilterRegistrationBean<DataScopeContextFilter> registrationBean = new FilterRegistrationBean<>();
-        registrationBean.setFilter(new DataScopeContextFilter(properties, dataScopeProvider));
-        registrationBean.addUrlPatterns("/*");
-        registrationBean.setName("dataScopeContextFilter");
-        registrationBean.setOrder(Integer.MAX_VALUE); // 最后执行
-        return registrationBean;
     }
 }

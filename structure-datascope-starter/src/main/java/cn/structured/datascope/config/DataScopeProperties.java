@@ -19,24 +19,10 @@ public class DataScopeProperties {
     private boolean enabled = true;
 
     /**
-     * 提供器类型：remote（远程权限服务）/ local（本地数据源）
-     */
-    private String providerType = "local";
-
-    /**
-     * 远程服务配置
-     */
-    private RemoteConfig remote = new RemoteConfig();
-
-    /**
      * 是否自动注册默认规则
      */
     private boolean autoRegisterRules = true;
 
-    /**
-     * userId
-     */
-    private String userId = "userId";
 
     /**
      * 规则扫描包路径
@@ -51,20 +37,4 @@ public class DataScopeProperties {
      * 字段配置
      */
     private DataScopeFieldConfig fieldConfig;
-
-    /**
-     * 远程服务配置
-     */
-    @Data
-    public static class RemoteConfig {
-        /**
-         * 远程权限服务地址
-         */
-        private String serviceUrl = "http://datascope-service:8080";
-
-        /**
-         * 请求超时时间（毫秒）
-         */
-        private int timeout = 5000;
-    }
 }

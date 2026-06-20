@@ -142,21 +142,21 @@ public class DataScopeCoreExampleApplication {
 
         // 场景 1: 普通员工访问
         log.info("\n>> 场景 1: 普通员工 (EMPLOYEE) 访问 <<");
-        setupDataScopeContext("scope_employee", Arrays.asList("EMPLOYEE"), "10", "1", "user_001");
+        setupDataScopeContext(Arrays.asList("EMPLOYEE"), "10", "1", "user_001");
         OrderDTO employeeOrder = createTestOrder();
         ruleEngine.filter(employeeOrder, "order");
         log.info("After filtering (EMPLOYEE): {}", employeeOrder);
 
         // 场景 2: 财务人员访问
         log.info("\n>> 场景 2: 财务人员 (FINANCE) 访问 <<");
-        setupDataScopeContext("scope_finance", Arrays.asList("FINANCE"), "10", "2", "user_002");
+        setupDataScopeContext(Arrays.asList("FINANCE"), "10", "2", "user_002");
         OrderDTO financeOrder = createTestOrder();
         ruleEngine.filter(financeOrder, "order");
         log.info("After filtering (FINANCE): {}", financeOrder);
 
         // 场景 3: 系统管理员访问
         log.info("\n>> 场景 3: 系统管理员 (SYS_ADMIN) 访问 <<");
-        setupDataScopeContext("scope_admin", Arrays.asList("SYS_ADMIN"), "10", "3", "user_003");
+        setupDataScopeContext(Arrays.asList("SYS_ADMIN"), "10", "3", "user_003");
         OrderDTO adminOrder = createTestOrder();
         ruleEngine.filter(adminOrder, "order");
         log.info("After filtering (SYS_ADMIN): {}", adminOrder);
@@ -169,12 +169,12 @@ public class DataScopeCoreExampleApplication {
         log.info("Checking field visibility for user resource...");
 
         // 员工无法看到 secret 字段
-        setupDataScopeContext("scope_employee", Arrays.asList("EMPLOYEE"), "10", "1", "user_001");
+        setupDataScopeContext(Arrays.asList("EMPLOYEE"), "10", "1", "user_001");
         boolean canEmployeeSeeSecret = ruleEngine.canSeeField("user", "secret");
         log.info("EMPLOYEE can see 'secret' field: {}", canEmployeeSeeSecret);
 
         // 管理员可以看到 secret 字段
-        setupDataScopeContext("scope_admin", Arrays.asList("SYS_ADMIN"), "10", "3", "user_003");
+        setupDataScopeContext(Arrays.asList("SYS_ADMIN"), "10", "3", "user_003");
         boolean canAdminSeeSecret = ruleEngine.canSeeField("user", "secret");
         log.info("SYS_ADMIN can see 'secret' field: {}", canAdminSeeSecret);
     }
@@ -197,16 +197,15 @@ public class DataScopeCoreExampleApplication {
     /**
      * 设置数据范围上下文
      */
-    private void setupDataScopeContext(String dataScopeId, List<String> roles, String orgId, String deptId, String userId) {
+    private void setupDataScopeContext(List<String> roles, String orgId, String deptId, String userId) {
         DataScopeInfo info = new DataScopeInfo();
-        info.setDataScopeId(dataScopeId);
         info.setRoles(roles);
         info.setOrgId(orgId);
         info.setDeptIds(Arrays.asList(deptId));
         info.setUserId(userId);
         DataScopeContext.set(info);
-        log.info("DataScope context setup: scopeId={}, roles={}, orgId={}, userId={}",
-                dataScopeId, roles, orgId, userId);
+        log.info("DataScope context setup: roles={}, orgId={}, userId={}",
+                roles, orgId, userId);
     }
 
     /**

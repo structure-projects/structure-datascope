@@ -37,14 +37,13 @@ public class OrderController {
         log.info("GET /api/orders - Fetching order list");
 
         // 获取当前数据范围上下文信息
-        String dataScopeId = DataScopeContext.getDataScopeId();
         List<String> roles = DataScopeContext.getRoles();
 
-        log.info("Current request - dataScopeId: {}, roles: {}", dataScopeId, roles);
+        log.info("Current request -, roles: {}", roles);
 
         List<OrderResponse> orders = orderService.getOrderList();
 
-        return ApiResponse.success(orders, dataScopeId, roles);
+        return ApiResponse.success(orders, roles);
     }
 
     /**
@@ -54,12 +53,11 @@ public class OrderController {
     public ApiResponse<OrderResponse> getOrderById(@PathVariable Long id) {
         log.info("GET /api/orders/{} - Fetching order detail", id);
 
-        String dataScopeId = DataScopeContext.getDataScopeId();
         List<String> roles = DataScopeContext.getRoles();
 
         OrderResponse order = orderService.getOrderById(id);
 
-        return ApiResponse.success(order, dataScopeId, roles);
+        return ApiResponse.success(order, roles);
     }
 
     /**

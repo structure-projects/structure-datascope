@@ -54,15 +54,6 @@ public class DataScopeContext {
         }
     }
 
-    /**
-     * 获取数据范围ID
-     *
-     * @return 数据范围ID，可能为 null
-     */
-    public static String getDataScopeId() {
-        DataScopeInfo info = get();
-        return info != null ? info.getDataScopeId() : null;
-    }
 
     /**
      * 获取当前用户角色列表
@@ -152,22 +143,6 @@ public class DataScopeContext {
         return false;
     }
 
-    /**
-     * 设置数据范围ID
-     *
-     * @param dataScopeId 数据范围ID
-     */
-    public static void setDataScopeId(String dataScopeId) {
-        DataScopeInfo info = get();
-        if (info == null) {
-            info = new DataScopeInfo();
-            CONTEXT.set(info);
-        }
-        info.setDataScopeId(dataScopeId);
-        if (log.isDebugEnabled()) {
-            log.debug("DataScope ID set to: {}", dataScopeId);
-        }
-    }
 
     /**
      * 设置当前用户角色列表
