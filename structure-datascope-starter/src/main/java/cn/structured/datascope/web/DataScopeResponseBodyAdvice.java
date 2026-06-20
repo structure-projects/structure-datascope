@@ -3,6 +3,7 @@ package cn.structured.datascope.web;
 import cn.structured.datascope.annotation.DataScopeRule;
 import cn.structured.datascope.cache.DataScopeClassCache;
 import cn.structured.datascope.cache.DataScopeResourceMeta;
+import cn.structured.datascope.config.DataScopeProperties;
 import cn.structured.datascope.engine.DataRuleEngine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
@@ -35,6 +36,7 @@ import java.util.Collection;
  *   <li>只处理带有 @DataScopeRule 注解的对象（通过共享缓存判断）</li>
  *   <li>使用共享缓存避免运行时反射检查注解</li>
  *   <li>实际的字段过滤使用反射设置 null，由 Jackson 序列化时处理</li>
+ *   <li>支持配置响应包装类，会对其内层 data 字段进行过滤（通过 structure.data-scope.result-wrapper-class 配置）</li>
  * </ul>
  * </p>
  */
@@ -43,9 +45,11 @@ import java.util.Collection;
 public class DataScopeResponseBodyAdvice implements ResponseBodyAdvice<Object> {
 
     private final DataRuleEngine ruleEngine;
+    private final DataScopeProperties properties;
 
-    public DataScopeResponseBodyAdvice(DataRuleEngine ruleEngine) {
+    public DataScopeResponseBodyAdvice(DataRuleEngine ruleEngine, DataScopeProperties properties) {
         this.ruleEngine = ruleEngine;
+        this.properties = properties;
     }
 
     @Override
@@ -60,6 +64,12 @@ public class DataScopeResponseBodyAdvice implements ResponseBodyAdvice<Object> {
 
         // 检查是否是集合类型
         if (Collection.class.isAssignableFrom(bodyType)) {
+            return true;
+        }
+
+        // 如果配置了包装类，检查是否是该包装类型
+        String wrapperClass = properties.getResultWrapperClass();
+        if (wrapperClass != null && !wrapperClass.isEmpty() && wrapperClass.equals(bodyType.getName())) {
             return true;
         }
 
@@ -80,8 +90,16 @@ public class DataScopeResponseBodyAdvice implements ResponseBodyAdvice<Object> {
             return null;
         }
 
+        // 如果配置了包装类，处理包装类型
+        String wrapperClass = properties.getResultWrapperClass();
+        if (wrapperClass != null && !wrapperClass.isEmpty() && wrapperClass.equals(body.getClass().getName())) {
+            processResultWrapper(body);
+            return body;
+        }
+
         // 如果是集合类型，遍历处理每个元素
         if (body instanceof Collection) {
+            log.debug("Processing collection of items for resource: {}");
             Collection<?> collection = (Collection<?>) body;
             for (Object item : collection) {
                 filterIfAnnotated(item);
@@ -92,6 +110,34 @@ public class DataScopeResponseBodyAdvice implements ResponseBodyAdvice<Object> {
         }
 
         return body;
+    }
+
+    /**
+     * 处理响应包装类型，提取 data 字段并对其内层数据进行过滤
+     */
+    private void processResultWrapper(Object wrapper) {
+        String dataMethod = properties.getResultWrapperDataMethod();
+        if (dataMethod == null || dataMethod.isEmpty()) {
+            dataMethod = "getData";
+        }
+
+        try {
+            Object data = wrapper.getClass().getMethod(dataMethod).invoke(wrapper);
+            if (data == null) {
+                return;
+            }
+
+            if (data instanceof Collection) {
+                Collection<?> collection = (Collection<?>) data;
+                for (Object item : collection) {
+                    filterIfAnnotated(item);
+                }
+            } else {
+                filterIfAnnotated(data);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to process result wrapper for data scope filtering", e);
+        }
     }
 
     /**

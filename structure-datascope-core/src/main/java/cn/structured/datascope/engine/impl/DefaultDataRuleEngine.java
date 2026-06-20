@@ -259,6 +259,8 @@ public class DefaultDataRuleEngine implements DataRuleEngine {
     private void filterUsingAnnotations(Object obj, String resource) {
         Class<?> clazz = obj.getClass();
 
+        log.info("filterUsingAnnotations - obj: {}, resource: {}", clazz.getName(), resource);
+
         Field[] fields = clazz.getDeclaredFields();
         int filteredCount = 0;
 
@@ -268,6 +270,8 @@ public class DefaultDataRuleEngine implements DataRuleEngine {
                     ? fieldAnnotation.name()
                     : field.getName();
 
+            log.info("Processing field: {}, annotation: {}", fieldName, fieldAnnotation);
+
             boolean visible = true;
 
             if (fieldAnnotation != null) {
@@ -275,6 +279,8 @@ public class DefaultDataRuleEngine implements DataRuleEngine {
             } else {
                 visible = canSeeField(resource, fieldName);
             }
+
+            log.info("Field '{}' visibility: {}", fieldName, visible);
 
             if (!visible) {
                 try {
@@ -303,10 +309,7 @@ public class DefaultDataRuleEngine implements DataRuleEngine {
         List<String> userRoles = DataScopeContext.getRoles();
         List<String> userPermissions = DataScopeContext.getPermissions();
 
-        if (log.isTraceEnabled()) {
-            log.trace("Evaluating field annotation: {}, user roles: {}, user permissions: {}",
-                    annotation, userRoles, userPermissions);
-        }
+        log.info("evaluateFieldAnnotation - annotation: {}, userRoles: {}, userPermissions: {}", annotation, userRoles, userPermissions);
 
         // 优先检查隐藏规则（角色维度）
         if (annotation.hiddenIfRoleIn().length > 0) {
@@ -356,6 +359,7 @@ public class DefaultDataRuleEngine implements DataRuleEngine {
             return false;
         }
 
+        log.debug("Field visible by default: {}", annotation.visible());
         return annotation.visible();
     }
 

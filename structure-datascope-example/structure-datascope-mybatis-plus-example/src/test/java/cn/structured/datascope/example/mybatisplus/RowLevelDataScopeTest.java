@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -76,6 +77,8 @@ class RowLevelDataScopeTest {
             MvcResult result = mockMvc.perform(get("/api/orders")
                             .header("X-User-Id", "user-row-org10-admin"))
                     .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data").isArray())
                     .andReturn();
 
             String content = result.getResponse().getContentAsString();
@@ -94,6 +97,8 @@ class RowLevelDataScopeTest {
             MvcResult result = mockMvc.perform(get("/api/orders")
                             .header("X-User-Id", "user-row-dept1"))
                     .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data").isArray())
                     .andReturn();
 
             String content = result.getResponse().getContentAsString();
@@ -111,13 +116,14 @@ class RowLevelDataScopeTest {
             MvcResult result = mockMvc.perform(get("/api/orders")
                             .header("X-User-Id", "user-004"))
                     .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
                     .andReturn();
 
             String content = result.getResponse().getContentAsString();
             System.out.println("Multi-role order list: " + content);
 
             // 验证响应成功
-            assertTrue(content.contains("orderNo") || content.equals("[]"),
+            assertTrue(content.contains("orderNo") || content.contains("data"),
                     "Response should contain orderNo field or be empty due to row-level filtering");
         }
     }
@@ -245,13 +251,14 @@ class RowLevelDataScopeTest {
             MvcResult result = mockMvc.perform(get("/api/orders")
                             .header("X-User-Id", "user-row-org10-admin"))
                     .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
                     .andReturn();
 
             String content = result.getResponse().getContentAsString();
             System.out.println("Org10 admin orders: " + content);
 
             // 验证响应格式正确
-            assertTrue(content.startsWith("["), "Response should be an array");
+            assertTrue(content.contains("data"), "Response should contain data field");
         }
 
         @Test
@@ -262,13 +269,14 @@ class RowLevelDataScopeTest {
             MvcResult result = mockMvc.perform(get("/api/orders")
                             .header("X-User-Id", "user-row-org20-admin"))
                     .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
                     .andReturn();
 
             String content = result.getResponse().getContentAsString();
             System.out.println("Org20 admin orders: " + content);
 
             // 验证响应格式正确
-            assertTrue(content.startsWith("["), "Response should be an array");
+            assertTrue(content.contains("data"), "Response should contain data field");
         }
 
         @Test
@@ -279,13 +287,14 @@ class RowLevelDataScopeTest {
             MvcResult result = mockMvc.perform(get("/api/orders")
                             .header("X-User-Id", "user-row-dept1"))
                     .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
                     .andReturn();
 
             String content = result.getResponse().getContentAsString();
             System.out.println("Dept1 user orders: " + content);
 
             // 验证响应格式正确
-            assertTrue(content.startsWith("["), "Response should be an array");
+            assertTrue(content.contains("data"), "Response should contain data field");
         }
 
         @Test
@@ -296,13 +305,14 @@ class RowLevelDataScopeTest {
             MvcResult result = mockMvc.perform(get("/api/orders")
                             .header("X-User-Id", "user-row-dept1-2-manager"))
                     .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
                     .andReturn();
 
             String content = result.getResponse().getContentAsString();
             System.out.println("Dept1-2 manager orders: " + content);
 
             // 验证响应格式正确
-            assertTrue(content.startsWith("["), "Response should be an array");
+            assertTrue(content.contains("data"), "Response should contain data field");
         }
     }
 }

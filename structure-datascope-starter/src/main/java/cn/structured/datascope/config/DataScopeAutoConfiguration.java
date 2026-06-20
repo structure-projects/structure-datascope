@@ -9,11 +9,11 @@ import cn.structured.datascope.provider.DefaultDataScopeProviderImpl;
 import cn.structured.datascope.scanner.DataRuleScanner;
 import cn.structured.datascope.web.DataScopeResponseBodyAdvice;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -38,7 +38,7 @@ import java.util.Arrays;
  */
 @Slf4j
 @Configuration
-@EnableConfigurationProperties({DataScopeProperties.class,DataScopeFieldConfig.class})
+@EnableConfigurationProperties({DataScopeProperties.class, DataScopeFieldConfig.class})
 @ConditionalOnWebApplication
 public class DataScopeAutoConfiguration {
 
@@ -109,17 +109,21 @@ public class DataScopeAutoConfiguration {
     }
 
     /**
-     * 注册数据权限响应体处理器
+     * 注册数据权限响应体处理器（已弃用）
      * <p>
      * 自动过滤 Controller 返回对象中的敏感字段，对使用者透明
+     * </p>
+     * <p>
+     * 注意：此方式已弃用，推荐使用 FastJson 的 SerializeFilter 实现。
+     * 请在项目中配置 FastJsonHttpMessageConverter 并使用 DataScopeSerializeFilter。
      * </p>
      */
     @Bean
     @ConditionalOnProperty(prefix = "structure.data-scope", name = "auto-filter-response", havingValue = "true", matchIfMissing = true)
     @ConditionalOnWebApplication
     public DataScopeResponseBodyAdvice dataScopeResponseBodyAdvice(
-            @Qualifier("dataRuleEngine") DataRuleEngine ruleEngine) {
+            @Qualifier("dataRuleEngine") DataRuleEngine ruleEngine, DataScopeProperties properties) {
         log.info("Registering DataScopeResponseBodyAdvice for automatic field filtering");
-        return new DataScopeResponseBodyAdvice(ruleEngine);
+        return new DataScopeResponseBodyAdvice(ruleEngine, properties);
     }
 }

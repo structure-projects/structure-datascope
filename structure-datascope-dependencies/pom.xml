@@ -27,6 +27,7 @@
 
     <properties>
         <revision>1.0.1-SNAPSHOT</revision>
+        <structure.version>1.4.0</structure.version>
     </properties>
 
     <url>https://projects.structured.cn/structure-boot</url>
@@ -88,5 +89,15 @@
             <artifactId>lombok</artifactId>
         </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>cn.structured</groupId>
+                <artifactId>structure-common</artifactId>
+                <version>${structure.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
 </project>

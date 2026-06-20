@@ -1,6 +1,5 @@
 package cn.structured.datascope.example.mybatisplus.dto;
 
-import cn.structured.datascope.annotation.DataScopeField;
 import cn.structured.datascope.annotation.DataScopeRule;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,25 +26,21 @@ public class OrderResponse {
     /**
      * 订单金额（仅管理员和财务可见）
      */
-    @DataScopeField(visibleIfRoleIn = {"SYS_ADMIN", "FINANCE"})
     private BigDecimal amount;
 
     /**
      * 客户手机号（仅管理员可见）
      */
-    @DataScopeField(visibleIfRoleIn = {"SYS_ADMIN"})
     private String phone;
 
     /**
      * 客户邮箱（所有人可见）
      */
-    @DataScopeField(visible = true)
     private String email;
 
     /**
      * 内部备注（对普通员工隐藏）
      */
-    @DataScopeField(hiddenIfRoleIn = {"EMPLOYEE"})
     private String remark;
 
     private Long orgId;

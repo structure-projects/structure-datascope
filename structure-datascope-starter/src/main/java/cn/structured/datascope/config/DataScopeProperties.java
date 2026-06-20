@@ -40,4 +40,22 @@ public class DataScopeProperties {
      */
     private String[] scanPackages = new String[0];
 
+    /**
+     * 响应包装类名
+     * <p>
+     * 用于标识响应体的包装类型，如 cn.structure.common.entity.ResResultVO
+     * 如果设置了该值，框架会自动处理包装类内层 data 字段的过滤
+     * </p>
+     */
+    private String resultWrapperClass = "cn.structure.common.entity.ResResultVO";
+
+
+    /**
+     * 响应包装类中获取数据的方法名
+     * <p>
+     * 默认为 getData
+     * </p>
+     */
+    private String resultWrapperDataMethod = "getData";
+
 }

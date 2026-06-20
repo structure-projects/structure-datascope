@@ -226,7 +226,7 @@ class ColumnLevelDataScopeTest {
     class ApiResponseStructureTest {
 
         @Test
-        @DisplayName("验证 API 响应是数组格式")
+        @DisplayName("验证 API 响应包含 success 字段")
         void verifyApiResponseStructure() throws Exception {
             setupUserContext("user-003");  // SYS_ADMIN 角色
 
@@ -238,9 +238,8 @@ class ColumnLevelDataScopeTest {
             String content = result.getResponse().getContentAsString();
             System.out.println("Response structure: " + content);
 
-            // 验证响应是数组格式
-            assertTrue(content.startsWith("["), "Response should be an array");
-            assertTrue(content.endsWith("]"), "Response should be an array");
+            // 验证响应包含 success 字段
+            assertTrue(content.contains("\"success\":true"), "Response should contain success:true");
         }
 
         @Test
@@ -257,8 +256,8 @@ class ColumnLevelDataScopeTest {
             String content = result.getResponse().getContentAsString();
             System.out.println("Non-blocked response: " + content);
 
-            // 验证响应是数组格式
-            assertTrue(content.startsWith("["), "Response should still return data even with hidden fields");
+            // 验证响应包含 data 字段
+            assertTrue(content.contains("\"data\""), "Response should still return data even with hidden fields");
         }
     }
 }
