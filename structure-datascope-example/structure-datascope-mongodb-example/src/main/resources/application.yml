@@ -6,19 +6,18 @@ spring:
   application:
     name: data-scope-mongodb-example
   mongodb:
-    host: 172.24.20.15
-    port: 27017
-    username: root
-    password: 123456
-    authentication-database: admin
+    uri: mongodb://user:123456@172.24.20.15:27017/test?authSource=admin&authMechanism=SCRAM-SHA-1
 
 # 数据范围管理配置
 structure:
   data-scope:
     field-config:
-      org-id-field: org_id
-      dept-id-field: dept_id
+      org-id-field: orgId
+      dept-id-field: deptId
       user-id-field: userId
+    enabled: true
+    scan-packages:
+      - cn.structured.datascope.example.mongodb.document
 logging:
   level:
     cn.structured.datascope: DEBUG

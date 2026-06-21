@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @DataScopeRule(resource = "order")
 public class OrderResponse {
 
-    private Long id;
+    private String id;
     private String orderNo;
 
     @DataScopeField(visibleIfRoleIn = {"SYS_ADMIN", "FINANCE"})

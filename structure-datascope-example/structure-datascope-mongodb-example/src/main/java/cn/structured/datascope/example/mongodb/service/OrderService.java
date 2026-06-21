@@ -128,7 +128,7 @@ public class OrderService {
      */
     private OrderResponse convertToResponse(OrderDocument document) {
         OrderResponse response = new OrderResponse();
-        response.setId(document.getId() != null ? Long.parseLong(document.getId()) : null);
+        response.setId(document.getId());
         response.setOrderNo(document.getOrderNo());
         response.setAmount(document.getAmount());
         response.setPhone(document.getPhone());
