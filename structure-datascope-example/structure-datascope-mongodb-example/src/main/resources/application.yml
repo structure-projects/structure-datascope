@@ -17,7 +17,7 @@ structure:
       user-id-field: userId
     enabled: true
     scan-packages:
-      - cn.structured.datascope.example.mongodb.document
+      - cn.structured.datascope.example.mongodb
 logging:
   level:
     cn.structured.datascope: DEBUG
