@@ -28,6 +28,7 @@
     <properties>
         <revision>1.0.1-SNAPSHOT</revision>
         <structure.version>1.4.0</structure.version>
+        <elasticsearch.version>8.11.0</elasticsearch.version>
     </properties>
 
     <url>https://projects.structured.cn/structure-boot</url>
@@ -65,37 +66,17 @@
         <developerConnection>scm:git:ssh://git@github.com:structure-projects/structure-boot.git</developerConnection>
     </scm>
 
-
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-    </dependencies>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>cn.structured</groupId>
                 <artifactId>structure-common</artifactId>
                 <version>${structure.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>co.elastic.clients</groupId>
+                <artifactId>elasticsearch-java</artifactId>
+                <version>${elasticsearch.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
