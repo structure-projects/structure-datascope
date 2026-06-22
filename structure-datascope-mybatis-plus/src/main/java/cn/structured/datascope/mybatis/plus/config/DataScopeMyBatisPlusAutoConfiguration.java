@@ -4,6 +4,7 @@ import cn.structured.datascope.config.DataScopeFieldConfig;
 import cn.structured.datascope.mybatis.interceptor.DataScopeInterceptor;
 import cn.structured.datascope.mybatis.plus.handler.StructureTenantLineHandler;
 import cn.structured.datascope.mybatis.properties.DataScopeMybatisProperties;
+import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
@@ -38,6 +39,15 @@ public class DataScopeMyBatisPlusAutoConfiguration {
     }
 
     /**
+     * 注册 MyBatis-Plus 元对象处理器
+     */
+    @Bean
+    @ConditionalOnMissingBean(MetaObjectHandler.class)
+    public MyMetaObjectHandler myMetaObjectHandler() {
+        return new MyMetaObjectHandler();
+    }
+
+    /**
      * 注册 MyBatis-Plus 拦截器链（包含数据权限拦截器）
      * <p>
      * 拦截器执行顺序说明：
@@ -52,22 +62,22 @@ public class DataScopeMyBatisPlusAutoConfiguration {
             DataScopeInterceptor dataScopeInterceptor,
             DataScopeMybatisProperties properties) {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
-        
+
         // 1. 先添加租户拦截器
         if (Boolean.TRUE.equals(properties.getEnableTenant())) {
             interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(
                     new StructureTenantLineHandler(properties)
             ));
         }
-        
+
         // 2. 添加数据权限拦截器
         interceptor.addInnerInterceptor(dataScopeInterceptor);
-        
+
         // 3. 最后添加分页拦截器（这样COUNT查询会包含前面的条件）
         if (Boolean.TRUE.equals(properties.getEnablePagination())) {
             interceptor.addInnerInterceptor(new PaginationInnerInterceptor(properties.getDbType()));
         }
-        
+
         return interceptor;
     }
 }

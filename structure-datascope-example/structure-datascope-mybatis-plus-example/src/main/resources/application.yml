@@ -34,10 +34,7 @@ structure:
     auto-filter-response: true
     scan-packages:
       - cn.structured.datascope.example.mybatisplus.dto
-    field-config:
-      org-id-field: org_id
-      dept-id-field: dept_id
-#    tenant-id-column: org_id
+    tenant-id-column: org_id
     default-tenant-id: 10
   security:
     # 是否启用安全框架

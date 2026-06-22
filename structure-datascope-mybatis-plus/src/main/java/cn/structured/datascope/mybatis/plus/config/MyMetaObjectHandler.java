@@ -5,7 +5,6 @@ import cn.structured.security.entity.UserContextEntity;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.reflection.MetaObject;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
@@ -48,6 +47,9 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
         if (this.getFieldValByName("updateBy", metaObject) == null) {
             this.setFieldValByName("updateBy", getUserId(), metaObject);
         }
+        if (this.getFieldValByName("deptId", metaObject) == null) {
+            this.setFieldValByName("deptId", getDeptId(), metaObject);
+        }
     }
 
     @Override
@@ -78,6 +80,24 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
             }
         } catch (Exception e) {
             log.debug("get user id is error -> message = {}", e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * 获取部门ID
+     *
+     * @return 部门ID
+     */
+    private Object getDeptId() {
+        try {
+            // 使用 用户上下文获取 部门ID
+            UserContextEntity userContextEntity = UserContext.get();
+            if (null != UserContext.get()) {
+                return userContextEntity.getDeptId();
+            }
+        } catch (Exception e) {
+            log.debug("get dept id is error -> message = {}", e.getMessage());
         }
         return null;
     }
