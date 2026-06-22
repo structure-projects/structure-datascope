@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.structured.datascope.example.mybatisplus.mapper.OrderUserMapper">
+
+    <!-- 多表JOIN查询：订单 + 用户 -->
+    <select id="selectOrderWithUser" resultType="map">
+        SELECT o.id as order_id, o.order_no, o.amount, u.id as user_id, u.username, u.email
+        FROM orders o
+        JOIN users u ON o.create_by = u.username
+        WHERE o.status = 'COMPLETED'
+    </select>
+
+    <!-- 多表JOIN查询：订单 + 用户（带别名） -->
+    <select id="selectOrderWithUserAlias" resultType="map">
+        SELECT o.id as order_id, o.order_no, o.amount, u.id as user_id, u.username
+        FROM orders AS o
+        JOIN users AS u ON o.create_by = u.username
+    </select>
+
+    <!-- 逗号分隔多表查询 -->
+    <select id="selectOrderAndUser" resultType="map">
+        SELECT o.order_no, u.username
+        FROM orders o, users u
+        WHERE o.create_by = u.username
+    </select>
+
+    <!-- LEFT JOIN 查询 -->
+    <select id="selectOrderLeftJoinUser" resultType="map">
+        SELECT o.id as order_id, o.order_no, u.username
+        FROM orders o
+        LEFT JOIN users u ON o.create_by = u.username
+    </select>
+
+    <!-- 复杂多表查询：订单 + 用户 + 部门 -->
+    <select id="selectOrderUserDept" resultType="map">
+        SELECT o.id as order_id, o.order_no, u.username, d.name as dept_name
+        FROM orders o
+        JOIN users u ON o.create_by = u.username
+        JOIN departments d ON u.dept_id = d.id
+        WHERE o.status = 'PENDING'
+    </select>
+
+</mapper>

@@ -2,47 +2,35 @@ package cn.structured.datascope.example.message.producer;
 
 import cn.structured.datascope.DataScopeContext;
 import cn.structured.datascope.example.message.dto.OrderEvent;
-import lombok.RequiredArgsConstructor;
+import cn.structured.datascope.message.wrapper.DataScopeStreamBridge;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
  * 订单消息生产者服务
  *
- * <p>负责向 RabbitMQ 发送订单相关消息，支持三种数据权限传递模式：</p>
- * <ul>
- *     <li><strong>Header 模式（推荐）</strong>：通过消息头传递数据权限信息</li>
- *     <li><strong>消息体内嵌模式</strong>：在消息体中包含 orgId、deptId 等权限字段</li>
- *     <li><strong>Exchange 隔离模式</strong>：通过不同的 Exchange 实现租户隔离</li>
- * </ul>
- *
- * @see cn.structured.datascope.example.message.consumer.OrderMessageConsumer
+ * <p>基于Spring Cloud Stream实现消息发送，自动透传数据权限信息</p>
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class OrderMessageProducer {
 
-    private static final String EXCHANGE_NAME = "order.exchange";
-    private static final String ROUTING_KEY = "order.event";
+    private static final String OUTPUT_BINDING = "orderEventOutput-out-0";
 
-    private static final String HEADER_ORG_ID = "X-DataScope-OrgId";
-    private static final String HEADER_DEPT_IDS = "X-DataScope-DeptIds";
-    private static final String HEADER_USER_ID = "X-DataScope-UserId";
+    private final DataScopeStreamBridge streamBridge;
 
-    private final RabbitTemplate rabbitTemplate;
-    private final ObjectMapper objectMapper;
+    public OrderMessageProducer(DataScopeStreamBridge streamBridge) {
+        this.streamBridge = streamBridge;
+    }
 
     /**
      * 发送订单创建消息
-     *
-     * <p>使用 Header 模式传递数据权限信息</p>
      *
      * @param orderId 订单ID
      * @param orderNo 订单编号
@@ -58,10 +46,10 @@ public class OrderMessageProducer {
                 .orgId(DataScopeContext.getOrgId())
                 .deptId(DataScopeContext.getDeptIds().isEmpty() ? null : DataScopeContext.getDeptIds().get(0))
                 .userId(DataScopeContext.getUserId())
-                .timestamp(java.time.LocalDateTime.now())
+                .timestamp(LocalDateTime.now())
                 .build();
 
-        sendMessageWithDataScope(event, ROUTING_KEY);
+        sendMessage(event);
         log.info("Producer: Order created event sent successfully");
     }
 
@@ -82,10 +70,10 @@ public class OrderMessageProducer {
                 .orgId(DataScopeContext.getOrgId())
                 .deptId(DataScopeContext.getDeptIds().isEmpty() ? null : DataScopeContext.getDeptIds().get(0))
                 .userId(DataScopeContext.getUserId())
-                .timestamp(java.time.LocalDateTime.now())
+                .timestamp(LocalDateTime.now())
                 .build();
 
-        sendMessageWithDataScope(event, ROUTING_KEY);
+        sendMessage(event);
         log.info("Producer: Order updated event sent successfully");
     }
 
@@ -104,82 +92,29 @@ public class OrderMessageProducer {
                 .orgId(DataScopeContext.getOrgId())
                 .deptId(DataScopeContext.getDeptIds().isEmpty() ? null : DataScopeContext.getDeptIds().get(0))
                 .userId(DataScopeContext.getUserId())
-                .timestamp(java.time.LocalDateTime.now())
+                .timestamp(LocalDateTime.now())
                 .build();
 
-        sendMessageWithDataScope(event, ROUTING_KEY);
+        sendMessage(event);
         log.info("Producer: Order deleted event sent successfully");
     }
 
     /**
-     * 发送消息（包含数据权限 Header）
+     * 使用StreamBridge发送消息
      *
-     * <p>使用 Header 模式传递数据权限信息到消费者</p>
-     *
-     * @param event      订单事件
-     * @param routingKey 路由键
-     */
-    private void sendMessageWithDataScope(OrderEvent event, String routingKey) {
-        MessageProperties properties = new MessageProperties();
-        properties.setContentType(MessageProperties.CONTENT_TYPE_JSON);
-
-        // 设置数据权限 Header
-        String orgId = DataScopeContext.getOrgId();
-        java.util.List<String> deptIds = DataScopeContext.getDeptIds();
-        String userId = DataScopeContext.getUserId();
-
-        if (orgId != null) {
-            properties.setHeader(HEADER_ORG_ID, orgId);
-        }
-        if (deptIds != null && !deptIds.isEmpty()) {
-            properties.setHeader(HEADER_DEPT_IDS, String.join(",", deptIds));
-        }
-        if (userId != null) {
-            properties.setHeader(HEADER_USER_ID, userId);
-        }
-
-        try {
-            byte[] body = objectMapper.writeValueAsBytes(event);
-            Message message = new Message(body, properties);
-
-            log.debug("Producer: Sending message to exchange: {}, routingKey: {}, headers: orgId={}, deptIds={}, userId={}",
-                    EXCHANGE_NAME, routingKey, orgId, deptIds, userId);
-
-            rabbitTemplate.send(EXCHANGE_NAME, routingKey, message);
-        } catch (Exception e) {
-            log.error("Producer: Failed to send message", e);
-            throw new RuntimeException("Failed to send message", e);
-        }
-    }
-
-    /**
-     * 发送消息到指定组织的 Exchange
-     *
-     * <p>使用 Exchange 隔离模式，不同组织使用不同的 Exchange</p>
-     *
-     * @param event 订单事件
-     * @param orgId 组织ID
-     */
-    public void sendOrderEventToOrg(OrderEvent event, String orgId) {
-        log.info("Producer: Sending order event to org: {}", orgId);
-
-        // 为每个组织创建专属的 Exchange
-        String orgExchange = EXCHANGE_NAME + "." + orgId;
-        String routingKey = "order." + event.getEventType().toLowerCase();
-
-        rabbitTemplate.convertAndSend(orgExchange, routingKey, event);
-        log.info("Producer: Order event sent to org exchange: {}", orgExchange);
-    }
-
-    /**
-     * 发送消息（无数据权限 Header）
-     *
-     * <p>使用消息体内嵌模式，权限信息包含在消息体中</p>
+     * <p>数据权限信息会通过DataScopeProducerInterceptor自动注入到消息头</p>
      *
      * @param event 订单事件
      */
-    public void sendMessageWithoutHeader(OrderEvent event) {
-        log.debug("Producer: Sending message without header: {}", event.getEventId());
-        rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY, event);
+    private void sendMessage(OrderEvent event) {
+        Message<OrderEvent> message = MessageBuilder.withPayload(event).build();
+
+        log.debug("Producer: Sending message via StreamBridge, binding: {}, eventId: {}",
+                OUTPUT_BINDING, event.getEventId());
+
+        boolean sent = streamBridge.send(OUTPUT_BINDING, message);
+        if (!sent) {
+            throw new RuntimeException("Failed to send message to binding: " + OUTPUT_BINDING);
+        }
     }
 }

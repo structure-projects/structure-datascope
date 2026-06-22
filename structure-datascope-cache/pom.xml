@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cn.structured</groupId>
+        <artifactId>structure-datascope-dependencies</artifactId>
+        <version>${revision}</version>
+        <relativePath>../structure-datascope-dependencies/pom.xml</relativePath>
+    </parent>
+
+    <packaging>jar</packaging>
+    <name>structure-datascope-cache</name>
+    <artifactId>structure-datascope-cache</artifactId>
+    <description>数据范围管理缓存模块，基于Spring Cache抽象实现多缓存技术支持</description>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- 依赖核心模块 -->
+        <dependency>
+            <groupId>cn.structured</groupId>
+            <artifactId>structure-datascope-core</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <!-- Spring Boot Cache Starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- Caffeine 缓存支持（可选） -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+</project>

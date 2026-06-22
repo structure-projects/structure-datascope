@@ -13,7 +13,7 @@
     <packaging>jar</packaging>
     <name>structure-datascope-message-example</name>
     <artifactId>structure-datascope-message-example</artifactId>
-    <description>数据范围管理消息场景示例（RabbitMQ消息队列）</description>
+    <description>数据范围管理消息场景示例（基于Spring Cloud Stream + RabbitMQ）</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,17 +22,31 @@
     </properties>
 
     <dependencies>
-        <!-- 数据权限核心依赖 -->
         <dependency>
             <groupId>cn.structured</groupId>
             <artifactId>structure-datascope-starter</artifactId>
             <version>${revision}</version>
         </dependency>
 
-        <!-- RabbitMQ 消息队列 -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-amqp</artifactId>
+            <groupId>cn.structured</groupId>
+            <artifactId>structure-datascope-message</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-function-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.structured</groupId>
+            <artifactId>structure-common</artifactId>
         </dependency>
 
     </dependencies>

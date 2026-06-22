@@ -2,6 +2,7 @@ package cn.structured.datascope.example.mybatisplus.mapper;
 
 import cn.structured.datascope.example.mybatisplus.entity.OrderEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -23,4 +24,9 @@ public interface OrderMapper extends BaseMapper<OrderEntity> {
      * 条件查询订单
      */
     List<OrderEntity> selectByCondition(@Param("status") String status);
+
+    /**
+     * 分页查询订单
+     */
+    IPage<OrderEntity> selectOrderPage(IPage<OrderEntity> page, @Param("status") String status);
 }

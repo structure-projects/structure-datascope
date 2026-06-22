@@ -1,23 +1,32 @@
-# DataScope Message 示例配置（RabbitMQ）
 server:
   port: 8087
 
 spring:
   application:
     name: data-scope-message-example
+  autoconfigure:
+    exclude:
+      - org.springframework.cloud.function.context.config.KotlinLambdaToFunctionAutoConfiguration
   rabbitmq:
-    host: localhost
+    host: 172.24.20.15
     port: 5672
-    username: guest
-    password: guest
-    # RabbitMQ 连接配置
-    listener:
-      simple:
-        acknowledge-mode: auto
-        concurrency: 3
-        max-concurrency: 10
+    username: root
+    password: 123456
 
-# 数据范围管理配置
+
+  cloud:
+    stream:
+      function:
+        definition: orderEventInput
+      bindings:
+        orderEventInput-in-0:
+          destination: order-exchange
+          content-type: application/json
+          group: order-group
+        orderEventOutput-out-0:
+          destination: order-exchange
+          content-type: application/json
+
 structure:
   data-scope:
     enabled: true
@@ -29,4 +38,5 @@ logging:
   level:
     cn.structured.datascope: DEBUG
     cn.structured.datascope.example.message: DEBUG
+    org.springframework.cloud.stream: DEBUG
     root: INFO

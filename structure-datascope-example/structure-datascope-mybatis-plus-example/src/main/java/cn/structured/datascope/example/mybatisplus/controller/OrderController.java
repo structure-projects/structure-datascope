@@ -4,6 +4,7 @@ import cn.structure.common.entity.ResResultVO;
 import cn.structure.common.utils.ResultUtilSimpleImpl;
 import cn.structured.datascope.example.mybatisplus.dto.OrderResponse;
 import cn.structured.datascope.example.mybatisplus.service.OrderService;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -97,5 +98,45 @@ public class OrderController {
     public long getOrderCount() {
         log.info("API: GET /api/orders/count");
         return orderService.getOrderCount();
+    }
+
+    /**
+     * 分页查询订单
+     * <p>
+     * 测试分页插件与数据权限插件的联合使用
+     * </p>
+     *
+     * @param pageNum 页码（从1开始）
+     * @param pageSize 每页大小
+     * @param status 订单状态（可选）
+     */
+    @GetMapping("/page")
+    public ResResultVO<IPage<OrderResponse>> getOrderPage(
+            @RequestParam(defaultValue = "1") int pageNum,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) String status) {
+        log.info("API: GET /api/orders/page - pageNum={}, pageSize={}, status={}", pageNum, pageSize, status);
+        IPage<OrderResponse> page = orderService.getOrderPage(pageNum, pageSize, status);
+        return ResultUtilSimpleImpl.success(page);
+    }
+
+    /**
+     * 分页查询订单（使用MyBatis-Plus内置分页）
+     * <p>
+     * 测试BaseMapper.selectPage与数据权限插件的联合使用
+     * </p>
+     *
+     * @param pageNum 页码（从1开始）
+     * @param pageSize 每页大小
+     * @param orderNo 订单编号（可选，模糊匹配）
+     */
+    @GetMapping("/page/wrapper")
+    public ResResultVO<IPage<OrderResponse>> getOrderPageByWrapper(
+            @RequestParam(defaultValue = "1") int pageNum,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) String orderNo) {
+        log.info("API: GET /api/orders/page/wrapper - pageNum={}, pageSize={}, orderNo={}", pageNum, pageSize, orderNo);
+        IPage<OrderResponse> page = orderService.getOrderPageByWrapper(pageNum, pageSize, orderNo);
+        return ResultUtilSimpleImpl.success(page);
     }
 }

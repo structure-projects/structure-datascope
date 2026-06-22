@@ -25,4 +25,15 @@
         </where>
     </select>
 
+    <!-- 分页查询订单 -->
+    <select id="selectOrderPage" resultType="cn.structured.datascope.example.mybatisplus.entity.OrderEntity">
+        SELECT * FROM orders
+        <where>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
 </mapper>

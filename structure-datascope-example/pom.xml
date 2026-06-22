@@ -24,6 +24,7 @@
         <module>structure-datascope-elasticsearch-example</module>
         <module>structure-datascope-mongodb-example</module>
         <module>structure-datascope-job-example</module>
+        <module>structure-datascope-cache-example</module>
     </modules>
 
     <dependencies>

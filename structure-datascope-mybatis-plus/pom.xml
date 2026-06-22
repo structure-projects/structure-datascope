@@ -25,7 +25,7 @@
         <!-- 依赖核心模块 -->
         <dependency>
             <groupId>cn.structured</groupId>
-            <artifactId>structure-datascope-core</artifactId>
+            <artifactId>structure-datascope-starter</artifactId>
             <version>${revision}</version>
         </dependency>
 
@@ -33,13 +33,23 @@
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <!-- MyBatis依赖 -->
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
+        </dependency>
+        <!-- mybatis-plus-jsqlparser -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-jsqlparser</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.structured</groupId>
+            <artifactId>structure-security-core</artifactId>
         </dependency>
     </dependencies>
 
