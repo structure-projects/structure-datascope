@@ -1,5 +1,7 @@
 package cn.structured.datascope.message.config;
 
+import cn.structured.datascope.message.wrapper.DataScopeStreamBridge;
+import org.springframework.cloud.stream.function.StreamBridge;
 import cn.structured.datascope.message.interceptor.DataScopeConsumerInterceptor;
 import cn.structured.datascope.message.interceptor.DataScopeProducerInterceptor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,5 +77,12 @@ public class DataScopeMessageAutoConfiguration {
                 return bean;
             }
         };
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(DataScopeStreamBridge.class)
+    public DataScopeStreamBridge dataScopeStreamBridge(StreamBridge streamBridge) {
+        log.info("Registering DataScopeStreamBridge wrapper for StreamBridge");
+        return new DataScopeStreamBridge(streamBridge);
     }
 }

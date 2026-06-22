@@ -2,6 +2,7 @@ package cn.structured.datascope.example.message.producer;
 
 import cn.structured.datascope.DataScopeContext;
 import cn.structured.datascope.example.message.dto.OrderEvent;
+import cn.structured.datascope.message.wrapper.DataScopeStreamBridge;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.messaging.Message;
@@ -20,11 +21,11 @@ import java.util.UUID;
 @Service
 public class OrderMessageProducer {
 
-    private static final String OUTPUT_BINDING = "orderEventOutput";
+    private static final String OUTPUT_BINDING = "orderEventOutput-out-0";
 
-    private final StreamBridge streamBridge;
+    private final DataScopeStreamBridge streamBridge;
 
-    public OrderMessageProducer(StreamBridge streamBridge) {
+    public OrderMessageProducer(DataScopeStreamBridge streamBridge) {
         this.streamBridge = streamBridge;
     }
 

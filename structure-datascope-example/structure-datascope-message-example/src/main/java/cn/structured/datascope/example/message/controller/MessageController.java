@@ -31,7 +31,9 @@ public class MessageController {
 
         log.info("API: POST /api/messages/order/created - orderId: {}, orderNo: {}", orderId, orderNo);
 
+        DataScopeContext.setUserId("1");
         messageProducer.sendOrderCreatedEvent(orderId, orderNo);
+
         return ResultUtilSimpleImpl.success(null);
     }
 

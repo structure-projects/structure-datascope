@@ -22,6 +22,7 @@ spring:
         orderEventInput-in-0:
           destination: order-exchange
           content-type: application/json
+          group: order-group
         orderEventOutput-out-0:
           destination: order-exchange
           content-type: application/json
