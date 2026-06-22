@@ -46,58 +46,40 @@ public class DefaultMultiTableDataScopeHandler implements MultiTableDataScopeHan
      * 将数据权限条件追加到 SQL 末尾
      * <p>
      * 如果 SQL 已有 WHERE 子句，在其条件后添加 AND 条件<br>
-     * 如果 SQL 没有 WHERE 子句，在最后添加 WHERE 条件
+     * 如果 SQL 没有 WHERE 子句，在 ORDER BY/GROUP BY/LIMIT 等之前添加 WHERE 条件
      * </p>
      */
     private String appendConditionToEnd(String originalSql, String dataScopeCondition) {
         String lowerSql = originalSql.toLowerCase();
         
-        // 查找 SQL 末尾的 WHERE 子句位置（忽略子查询中的 WHERE）
-        int lastWhereIndex = findLastWhereBeforeOrderBy(lowerSql);
+        // 查找 ORDER BY、GROUP BY、HAVING、LIMIT、UNION 等关键字的位置
+        int orderByPos = lowerSql.indexOf(" order by ");
+        int groupByPos = lowerSql.indexOf(" group by ");
+        int havingPos = lowerSql.indexOf(" having ");
+        int limitPos = lowerSql.indexOf(" limit ");
+        int unionPos = lowerSql.indexOf(" union ");
         
-        if (lastWhereIndex == -1) {
-            // 没有 WHERE，在 SQL 最后添加 WHERE
-            return originalSql + " WHERE " + dataScopeCondition;
+        // 找到第一个出现的位置（最靠前的关键字）
+        int firstKeywordPos = lowerSql.length();
+        if (orderByPos > 0 && orderByPos < firstKeywordPos) firstKeywordPos = orderByPos;
+        if (groupByPos > 0 && groupByPos < firstKeywordPos) firstKeywordPos = groupByPos;
+        if (havingPos > 0 && havingPos < firstKeywordPos) firstKeywordPos = havingPos;
+        if (limitPos > 0 && limitPos < firstKeywordPos) firstKeywordPos = limitPos;
+        if (unionPos > 0 && unionPos < firstKeywordPos) firstKeywordPos = unionPos;
+        
+        // 在这些关键字之前查找 WHERE
+        String beforeKeyword = lowerSql.substring(0, firstKeywordPos);
+        int wherePos = beforeKeyword.lastIndexOf(" where ");
+        
+        if (wherePos == -1) {
+            // 没有 WHERE，在第一个关键字之前插入 WHERE
+            String beforePart = originalSql.substring(0, firstKeywordPos);
+            String afterPart = originalSql.substring(firstKeywordPos);
+            return beforePart + " WHERE " + dataScopeCondition + " " + afterPart;
         } else {
             // 已有 WHERE，在 WHERE 条件后添加 AND
-            int afterWherePos = lastWhereIndex + 7; // " where " 长度为 7
+            int afterWherePos = wherePos + 7; // " where " 长度为 7
             return originalSql.substring(0, afterWherePos) + "(" + dataScopeCondition + ") AND " + originalSql.substring(afterWherePos);
         }
-    }
-    
-    /**
-     * 查找最后一个 WHERE 子句的位置（在 ORDER BY、LIMIT 等之前）
-     */
-    private int findLastWhereBeforeOrderBy(String lowerSql) {
-        // 查找所有可能的关键字位置
-        int[] keywordPositions = {
-            findKeywordEnd(lowerSql, "order by"),
-            findKeywordEnd(lowerSql, "group by"),
-            findKeywordEnd(lowerSql, "having "),
-            findKeywordEnd(lowerSql, "limit "),
-            findKeywordEnd(lowerSql, "union ")
-        };
-        
-        // 找到最靠前的关键字位置
-        int minKeywordPos = lowerSql.length();
-        for (int pos : keywordPositions) {
-            if (pos > 0 && pos < minKeywordPos) {
-                minKeywordPos = pos;
-            }
-        }
-        
-        // 在 ORDER BY 等关键字之前查找最后一个 WHERE
-        String beforeKeyword = lowerSql.substring(0, minKeywordPos);
-        int lastWhereIndex = beforeKeyword.lastIndexOf(" where ");
-        
-        return lastWhereIndex;
-    }
-    
-    /**
-     * 查找关键字的结束位置
-     */
-    private int findKeywordEnd(String lowerSql, String keyword) {
-        int index = lowerSql.indexOf(keyword);
-        return index > 0 ? index + keyword.length() : -1;
     }
 }

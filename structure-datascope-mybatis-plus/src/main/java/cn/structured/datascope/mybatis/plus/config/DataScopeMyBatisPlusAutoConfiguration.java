@@ -39,6 +39,12 @@ public class DataScopeMyBatisPlusAutoConfiguration {
 
     /**
      * 注册 MyBatis-Plus 拦截器链（包含数据权限拦截器）
+     * <p>
+     * 拦截器执行顺序说明：
+     * 1. TenantLineInnerInterceptor - 先添加租户隔离条件
+     * 2. DataScopeInterceptor - 添加数据权限条件（部门级）
+     * 3. PaginationInnerInterceptor - 最后执行分页，生成COUNT查询时会包含前面的条件
+     * </p>
      */
     @Bean
     @ConditionalOnMissingBean(MybatisPlusInterceptor.class)
@@ -46,18 +52,22 @@ public class DataScopeMyBatisPlusAutoConfiguration {
             DataScopeInterceptor dataScopeInterceptor,
             DataScopeMybatisProperties properties) {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
-        // 添加分页拦截器
-        if (Boolean.TRUE.equals(properties.getEnablePagination())) {
-            interceptor.addInnerInterceptor(new PaginationInnerInterceptor(properties.getDbType()));
-        }
-        // 添加租户拦截器
+        
+        // 1. 先添加租户拦截器
         if (Boolean.TRUE.equals(properties.getEnableTenant())) {
             interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(
                     new StructureTenantLineHandler(properties)
             ));
         }
-        // 添加数据权限拦截器
+        
+        // 2. 添加数据权限拦截器
         interceptor.addInnerInterceptor(dataScopeInterceptor);
+        
+        // 3. 最后添加分页拦截器（这样COUNT查询会包含前面的条件）
+        if (Boolean.TRUE.equals(properties.getEnablePagination())) {
+            interceptor.addInnerInterceptor(new PaginationInnerInterceptor(properties.getDbType()));
+        }
+        
         return interceptor;
     }
 }

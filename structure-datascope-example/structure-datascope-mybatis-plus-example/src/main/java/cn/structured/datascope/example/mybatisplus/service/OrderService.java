@@ -5,6 +5,8 @@ import cn.structured.datascope.example.mybatisplus.dto.OrderResponse;
 import cn.structured.datascope.example.mybatisplus.entity.OrderEntity;
 import cn.structured.datascope.example.mybatisplus.mapper.OrderMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -143,6 +145,42 @@ public class OrderService {
      */
     public long getOrderCount() {
         return orderMapper.selectCount(null);
+    }
+
+    /**
+     * 分页查询订单
+     * <p>
+     * 数据权限通过SQL拦截器自动注入，分页插件自动处理分页
+     * </p>
+     */
+    public IPage<OrderResponse> getOrderPage(int pageNum, int pageSize, String status) {
+        log.info("Fetching order page: pageNum={}, pageSize={}, status={}", pageNum, pageSize, status);
+
+        Page<OrderEntity> page = new Page<>(pageNum, pageSize);
+        IPage<OrderEntity> entityPage = orderMapper.selectOrderPage(page, status);
+
+        return entityPage.convert(this::convertToResponse);
+    }
+
+    /**
+     * 分页查询订单（使用MyBatis-Plus内置分页）
+     * <p>
+     * 使用BaseMapper的selectPage方法
+     * </p>
+     */
+    public IPage<OrderResponse> getOrderPageByWrapper(int pageNum, int pageSize, String orderNo) {
+        log.info("Fetching order page by wrapper: pageNum={}, pageSize={}, orderNo={}", pageNum, pageSize, orderNo);
+
+        Page<OrderEntity> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<OrderEntity> wrapper = new LambdaQueryWrapper<>();
+        if (orderNo != null && !orderNo.isEmpty()) {
+            wrapper.like(OrderEntity::getOrderNo, orderNo);
+        }
+        wrapper.orderByDesc(OrderEntity::getCreateTime);
+
+        IPage<OrderEntity> entityPage = orderMapper.selectPage(page, wrapper);
+
+        return entityPage.convert(this::convertToResponse);
     }
 
     /**
