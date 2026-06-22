@@ -26,8 +26,8 @@ public class MessageController {
 
     @PostMapping("/order/created")
     public ResResultVO<Void> sendOrderCreated(
-            @RequestParam Long orderId,
-            @RequestParam String orderNo) {
+            @RequestParam(name = "orderId") Long orderId,
+            @RequestParam(name = "orderNo") String orderNo) {
 
         log.info("API: POST /api/messages/order/created - orderId: {}, orderNo: {}", orderId, orderNo);
 
@@ -37,8 +37,8 @@ public class MessageController {
 
     @PostMapping("/order/updated")
     public ResResultVO<Void> sendOrderUpdated(
-            @RequestParam Long orderId,
-            @RequestParam String orderNo) {
+            @RequestParam(name = "orderId") Long orderId,
+            @RequestParam(name = "orderNo") String orderNo) {
 
         log.info("API: POST /api/messages/order/updated - orderId: {}, orderNo: {}", orderId, orderNo);
 
@@ -47,7 +47,7 @@ public class MessageController {
     }
 
     @PostMapping("/order/deleted")
-    public ResResultVO<Void> sendOrderDeleted(@RequestParam Long orderId) {
+    public ResResultVO<Void> sendOrderDeleted(@RequestParam(name = "orderId") Long orderId) {
 
         log.info("API: POST /api/messages/order/deleted - orderId: {}", orderId);
 
@@ -57,8 +57,8 @@ public class MessageController {
 
     @PostMapping("/test")
     public ResResultVO<String> testDataScopeTransmission(
-            @RequestParam Long orderId,
-            @RequestParam String orderNo) {
+            @RequestParam(name = "orderId") Long orderId,
+            @RequestParam(name = "orderNo") String orderNo) {
 
         log.info("API: POST /api/messages/test - Testing data scope transmission");
 
