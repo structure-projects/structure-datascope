@@ -17,7 +17,6 @@ import java.util.List;
 @ConfigurationProperties(prefix = "structure.data-scope")
 public class DataScopeMybatisProperties {
 
-
     /**
      * 是否启用租户隔离（组织级别）
      */
