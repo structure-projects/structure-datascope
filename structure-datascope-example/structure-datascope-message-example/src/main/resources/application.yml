@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: data-scope-message-example
+  main:
+    allow-circular-references: true
   autoconfigure:
     exclude:
       - org.springframework.cloud.function.context.config.KotlinLambdaToFunctionAutoConfiguration
@@ -33,6 +35,11 @@ structure:
     field-config:
       org-id-field: orgId
       dept-id-field: deptId
+  security:
+    enabled: true
+    antMatchers:
+      unAuthenticated:
+        - /**
 
 logging:
   level:

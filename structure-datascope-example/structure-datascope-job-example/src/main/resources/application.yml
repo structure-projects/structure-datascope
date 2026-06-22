@@ -5,12 +5,19 @@ server:
 spring:
   application:
     name: data-scope-job-example
+  main:
+    allow-circular-references: true
 
 # 数据范围管理配置
 structure:
   data-scope:
     enabled: true
     field-config:
+  security:
+    enabled: true
+    antMatchers:
+      unAuthenticated:
+        - /**
 
 logging:
   level:

@@ -5,6 +5,8 @@ server:
 spring:
   application:
     name: data-scope-example
+  main:
+    allow-circular-references: true
 
 # 数据范围管理配置
 structure:
@@ -14,6 +16,11 @@ structure:
     auto-filter-response: true
     scan-packages:
       - cn.structured.datascope.example.dto
+  security:
+    enabled: true
+    antMatchers:
+      unAuthenticated:
+        - /**
 
 logging:
   level:

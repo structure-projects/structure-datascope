@@ -27,6 +27,10 @@
             <artifactId>structure-datascope-core</artifactId>
             <version>${revision}</version>
         </dependency>
+        <dependency>
+            <groupId>cn.structured</groupId>
+            <artifactId>structure-security-jwt-starter</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

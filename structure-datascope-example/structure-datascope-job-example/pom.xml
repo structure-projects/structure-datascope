@@ -34,7 +34,10 @@
             <artifactId>xxl-job-core</artifactId>
             <version>2.4.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>cn.structured</groupId>
+            <artifactId>structure-security-jwt-starter</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
