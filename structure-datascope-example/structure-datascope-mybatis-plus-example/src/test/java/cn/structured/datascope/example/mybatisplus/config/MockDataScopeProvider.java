@@ -135,6 +135,32 @@ public class MockDataScopeProvider implements DataScopeProvider {
         adminInfo2.setOrgId("10");
         adminInfo2.setDeptIds(Arrays.asList("1", "2", "3"));
         USER_INFO_MAP.put("user-006", adminInfo2);
+
+        // ========== 租户隔离测试用户 ==========
+
+        // 租户1用户
+        DataScopeInfo tenant1Info = new DataScopeInfo();
+        tenant1Info.setUserId("user-tenant-1");
+        tenant1Info.setRoles(Arrays.asList("EMPLOYEE"));
+        tenant1Info.setOrgId("1");
+        tenant1Info.setDeptIds(Arrays.asList("1"));
+        USER_INFO_MAP.put("user-tenant-1", tenant1Info);
+
+        // 租户2用户
+        DataScopeInfo tenant2Info = new DataScopeInfo();
+        tenant2Info.setUserId("user-tenant-2");
+        tenant2Info.setRoles(Arrays.asList("EMPLOYEE"));
+        tenant2Info.setOrgId("2");
+        tenant2Info.setDeptIds(Arrays.asList("1"));
+        USER_INFO_MAP.put("user-tenant-2", tenant2Info);
+
+        // 部门1租户1用户
+        DataScopeInfo dept1Tenant1Info = new DataScopeInfo();
+        dept1Tenant1Info.setUserId("user-dept1-tenant1");
+        dept1Tenant1Info.setRoles(Arrays.asList("EMPLOYEE"));
+        dept1Tenant1Info.setOrgId("1");
+        dept1Tenant1Info.setDeptIds(Arrays.asList("1"));
+        USER_INFO_MAP.put("user-dept1-tenant1", dept1Tenant1Info);
     }
 
     @Override
