@@ -11,9 +11,9 @@
     </parent>
 
     <packaging>jar</packaging>
-    <name>structure-datascope-mybatis-plus</name>
-    <artifactId>structure-datascope-mybatis-plus</artifactId>
-    <description>数据范围管理mybatis-plus</description>
+    <name>structure-datascope-cache</name>
+    <artifactId>structure-datascope-cache</artifactId>
+    <description>数据范围管理缓存模块，基于Spring Cache抽象实现多缓存技术支持</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -28,23 +28,17 @@
             <artifactId>structure-datascope-core</artifactId>
             <version>${revision}</version>
         </dependency>
-
-        <!-- MyBatis-Plus依赖 -->
+        <!-- Spring Boot Cache Starter -->
         <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
-            <scope>provided</scope>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+            <optional>true</optional>
         </dependency>
-
-        <!-- MyBatis依赖 -->
+        <!-- Caffeine 缓存支持（可选） -->
         <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis</artifactId>
-        </dependency>
-        <!-- mybatis-plus-jsqlparser -->
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-jsqlparser</artifactId>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 

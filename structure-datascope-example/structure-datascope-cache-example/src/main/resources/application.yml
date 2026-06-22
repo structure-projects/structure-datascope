@@ -1,0 +1,29 @@
+# DataScope Cache 示例配置（使用 Redis 作为底层缓存）
+server:
+  port: 8083
+
+spring:
+  application:
+    name: data-scope-cache-example
+  data:
+    redis:
+      host: 172.24.20.15
+      port: 6379
+      password: 123456
+
+# 数据范围管理配置
+structure:
+  data-scope:
+    enabled: true
+    scan-packages:
+      - cn.structured.datascope.example.cache.dto
+    field-config:
+      org-id-field: orgId
+      dept-id-field: deptId
+      user-id-field: userId
+
+logging:
+  level:
+    cn.structured.datascope: DEBUG
+    cn.structured.datascope.example.cache: DEBUG
+    root: INFO
