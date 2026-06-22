@@ -34,6 +34,7 @@
         <elasticsearch.version>8.11.0</elasticsearch.version>
         <spring-cloud.version>2025.1.0</spring-cloud.version>
         <spring-cloud-parent.version>5.0.0</spring-cloud-parent.version>
+        <structure-security.version>1.1.4</structure-security.version>
     </properties>
 
     <url>https://projects.structured.cn/structure-boot</url>
@@ -78,12 +79,6 @@
                 <artifactId>structure-common</artifactId>
                 <version>${structure.version}</version>
             </dependency>
-            <!-- mybatis-plus-jsqlparser -->
-            <dependency>
-                <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-jsqlparser</artifactId>
-                <version>${mybatis-plus.version}</version>
-            </dependency>
             <!-- Spring Cloud BOM -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
@@ -91,6 +86,33 @@
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- mybatis-plus-jsqlparser -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-jsqlparser</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
+            <!-- SpringDoc OpenAPI -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+
+            <!-- 安全框架 -->
+            <dependency>
+                <groupId>cn.structured</groupId>
+                <artifactId>structure-security-core</artifactId>
+                <version>${structure-security.version}</version>
+            </dependency>
+            <!-- 权限 -->
+            <dependency>
+                <groupId>cn.structured</groupId>
+                <artifactId>structure-security-permission-starter</artifactId>
+                <version>${structure-security.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
