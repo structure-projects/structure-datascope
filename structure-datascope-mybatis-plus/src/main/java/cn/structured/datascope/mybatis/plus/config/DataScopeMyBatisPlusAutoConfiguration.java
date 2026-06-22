@@ -2,11 +2,15 @@ package cn.structured.datascope.mybatis.plus.config;
 
 import cn.structured.datascope.config.DataScopeFieldConfig;
 import cn.structured.datascope.mybatis.interceptor.DataScopeInterceptor;
+import cn.structured.datascope.mybatis.plus.handler.StructureTenantLineHandler;
+import cn.structured.datascope.mybatis.properties.DataScopeMybatisProperties;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,6 +24,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnClass({MybatisPlusInterceptor.class})
+@EnableConfigurationProperties(DataScopeMybatisProperties.class)
 @ConditionalOnProperty(prefix = "structure.data-scope", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class DataScopeMyBatisPlusAutoConfiguration {
 
@@ -37,8 +42,21 @@ public class DataScopeMyBatisPlusAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(MybatisPlusInterceptor.class)
-    public MybatisPlusInterceptor mybatisPlusInterceptor(DataScopeInterceptor dataScopeInterceptor) {
+    public MybatisPlusInterceptor mybatisPlusInterceptor(
+            DataScopeInterceptor dataScopeInterceptor,
+            DataScopeMybatisProperties properties) {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+        // 添加分页拦截器
+        if (Boolean.TRUE.equals(properties.getEnablePagination())) {
+            interceptor.addInnerInterceptor(new PaginationInnerInterceptor(properties.getDbType()));
+        }
+        // 添加租户拦截器
+        if (Boolean.TRUE.equals(properties.getEnableTenant())) {
+            interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(
+                    new StructureTenantLineHandler(properties)
+            ));
+        }
+        // 添加数据权限拦截器
         interceptor.addInnerInterceptor(dataScopeInterceptor);
         return interceptor;
     }

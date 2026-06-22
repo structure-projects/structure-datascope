@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * 默认多表数据权限处理器
  * <p>
- * 策略：只对第一个表添加数据权限条件
+ * 策略：只对第一个表添加数据权限条件，将条件放在 SQL 最后面
  * </p>
  */
 @Slf4j
@@ -28,8 +28,8 @@ public class DefaultMultiTableDataScopeHandler implements MultiTableDataScopeHan
         // 构建数据权限条件
         String dataScopeCondition = buildDataScopeCondition(tableAlias, fieldConfig);
         
-        // 注入条件
-        return injectDataScopeCondition(sql, dataScopeCondition, firstTable.getInsertPosition());
+        // 将条件放在 SQL 最后面
+        return appendConditionToEnd(sql, dataScopeCondition);
     }
 
     /**
@@ -43,17 +43,61 @@ public class DefaultMultiTableDataScopeHandler implements MultiTableDataScopeHan
     }
 
     /**
-     * 将数据权限条件注入到SQL中
+     * 将数据权限条件追加到 SQL 末尾
+     * <p>
+     * 如果 SQL 已有 WHERE 子句，在其条件后添加 AND 条件<br>
+     * 如果 SQL 没有 WHERE 子句，在最后添加 WHERE 条件
+     * </p>
      */
-    private String injectDataScopeCondition(String originalSql, String dataScopeCondition, int afterTableIndex) {
+    private String appendConditionToEnd(String originalSql, String dataScopeCondition) {
         String lowerSql = originalSql.toLowerCase();
-        int whereIndex = lowerSql.indexOf(" where ", afterTableIndex);
-
-        if (whereIndex == -1) {
-            return originalSql.substring(0, afterTableIndex) + " WHERE " + dataScopeCondition + originalSql.substring(afterTableIndex);
+        
+        // 查找 SQL 末尾的 WHERE 子句位置（忽略子查询中的 WHERE）
+        int lastWhereIndex = findLastWhereBeforeOrderBy(lowerSql);
+        
+        if (lastWhereIndex == -1) {
+            // 没有 WHERE，在 SQL 最后添加 WHERE
+            return originalSql + " WHERE " + dataScopeCondition;
         } else {
-            int afterWherePos = whereIndex + 7;
+            // 已有 WHERE，在 WHERE 条件后添加 AND
+            int afterWherePos = lastWhereIndex + 7; // " where " 长度为 7
             return originalSql.substring(0, afterWherePos) + "(" + dataScopeCondition + ") AND " + originalSql.substring(afterWherePos);
         }
+    }
+    
+    /**
+     * 查找最后一个 WHERE 子句的位置（在 ORDER BY、LIMIT 等之前）
+     */
+    private int findLastWhereBeforeOrderBy(String lowerSql) {
+        // 查找所有可能的关键字位置
+        int[] keywordPositions = {
+            findKeywordEnd(lowerSql, "order by"),
+            findKeywordEnd(lowerSql, "group by"),
+            findKeywordEnd(lowerSql, "having "),
+            findKeywordEnd(lowerSql, "limit "),
+            findKeywordEnd(lowerSql, "union ")
+        };
+        
+        // 找到最靠前的关键字位置
+        int minKeywordPos = lowerSql.length();
+        for (int pos : keywordPositions) {
+            if (pos > 0 && pos < minKeywordPos) {
+                minKeywordPos = pos;
+            }
+        }
+        
+        // 在 ORDER BY 等关键字之前查找最后一个 WHERE
+        String beforeKeyword = lowerSql.substring(0, minKeywordPos);
+        int lastWhereIndex = beforeKeyword.lastIndexOf(" where ");
+        
+        return lastWhereIndex;
+    }
+    
+    /**
+     * 查找关键字的结束位置
+     */
+    private int findKeywordEnd(String lowerSql, String keyword) {
+        int index = lowerSql.indexOf(keyword);
+        return index > 0 ? index + keyword.length() : -1;
     }
 }

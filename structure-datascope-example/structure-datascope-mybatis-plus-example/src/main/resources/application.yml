@@ -10,10 +10,11 @@ spring:
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
-  sql:
-    init:
-      mode: always
-
+#  sql:
+#    init:
+#      mode: always
+  main:
+    allow-circular-references: true
 # MyBatis-Plus 配置
 mybatis-plus:
   configuration:
@@ -26,6 +27,9 @@ mybatis-plus:
 structure:
   data-scope:
     enabled: true
+    enable-tenant: true  # 启用租户拦截器
+    enable-pagination: true  # 启用分页拦截器
+    enable-data-scope: true  # 启用数据权限
     auto-register-rules: true
     auto-filter-response: true
     scan-packages:
@@ -33,7 +37,22 @@ structure:
     field-config:
       org-id-field: org_id
       dept-id-field: dept_id
-
+#    tenant-id-column: org_id
+    default-tenant-id: 10
+  security:
+    # 是否启用安全框架
+    enabled: true
+    # 默认登录页面（API 模式可为空）
+    default-login-url: /api/user/login
+    # CORS 跨域过滤器类
+    # 一般不需要修改
+    corsFilterClass: cn.structured.security.filter.CorsFilter
+    # Ant 风格路径匹配配置
+    antMatchers:
+      # 不需要认证的接口（白名单）
+      # 这些接口不需要登录即可访问
+      unAuthenticated:
+        - /**
 logging:
   level:
     cn.structured.datascope: DEBUG

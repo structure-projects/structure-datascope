@@ -1,5 +1,6 @@
 package cn.structured.datascope.mybatis.properties;
 
+import com.baomidou.mybatisplus.annotation.DbType;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -26,9 +27,19 @@ public class DataScopeMybatisProperties {
     private Boolean enableTenant = true;
 
     /**
+     * 是否启用分页插件
+     */
+    private Boolean enablePagination = true;
+
+    /**
      * 是否启用数据权限（部门级别）
      */
     private Boolean enableDataScope = true;
+
+    /**
+     * 数据库类型
+     */
+    private DbType dbType = DbType.MYSQL;
 
     /**
      * 租户ID字段名
@@ -43,5 +54,5 @@ public class DataScopeMybatisProperties {
     /**
      * 排除表列表（这些表不应用数据权限）
      */
-    private List<String> excludeTables;
+    private List<String> excludeTables = new java.util.ArrayList<>();
 }

@@ -52,6 +52,15 @@
             <groupId>cn.structured</groupId>
             <artifactId>structure-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>cn.structured</groupId>
+            <artifactId>structure-security-jwt-starter</artifactId>
+        </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>cn.structured</groupId>-->
+<!--            <artifactId>structure-security-oauth-resource-starter</artifactId>-->
+<!--        </dependency>-->
     </dependencies>
 
 </project>

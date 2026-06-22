@@ -177,11 +177,13 @@ public class DataScopeInterceptor implements InnerInterceptor {
      */
     private int getKeywordLength(String lowerSql, int position) {
         String[] keywords = {" from ", " inner join ", " left join ", " right join ", " full join ", " cross join ", " join "};
+        String remaining = lowerSql.substring(position).toLowerCase();
         for (String keyword : keywords) {
-            if (lowerSql.startsWith(keyword, position)) {
+            if (remaining.startsWith(keyword)) {
                 return keyword.length();
             }
         }
+        // 默认返回 " from " 的长度
         return 6;
     }
 
