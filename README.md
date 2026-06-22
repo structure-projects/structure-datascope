@@ -9,9 +9,13 @@
   - Redis
   - Elasticsearch
   - MongoDB
+  - Spring Cloud Stream (消息传递)
 - **行级权限控制**：在 DAO 层自动添加 WHERE 条件
 - **列级权限控制**：在序列化前过滤敏感字段
 - **角色 + 权限双重控制**：支持角色和权限标识两种维度的字段可见性控制
+- **多表关联查询支持**：自动识别 SQL 中的多表并正确注入数据权限条件
+- **租户隔离集成**：与 MyBatis-Plus 租户插件无缝集成
+- **缓存数据隔离**：自动为缓存键添加数据权限前缀
 
 ## 数据权限两层模型
 
@@ -136,7 +140,9 @@ structure-datascope/
 ├── structure-datascope-mybatis-plus/    # MyBatis-Plus 行级权限拦截器
 ├── structure-datascope-redis/           # Redis 数据范围隔离
 ├── structure-datascope-elasticsearch/  # Elasticsearch 数据范围隔离
-├── structure-datascope-mongodb/         # MongoDB 数据范围隔离
+├── structure-datascope-mongodb/        # MongoDB 数据范围隔离
+├── structure-datascope-cache/           # 缓存数据范围隔离（支持 Caffeine/Ehcache/Redis）
+├── structure-datascope-message/        # Spring Cloud Stream 消息数据权限透传
 └── structure-datascope-example/         # 示例模块
     ├── structure-datascope-core-example/
     ├── structure-datascope-spring-boot-example/
@@ -144,6 +150,7 @@ structure-datascope/
     ├── structure-datascope-mybatis-plus-example/
     ├── structure-datascope-elasticsearch-example/
     ├── structure-datascope-mongodb-example/
+    ├── structure-datascope-cache-example/
     ├── structure-datascope-message-example/
     └── structure-datascope-job-example/
 ```
@@ -174,18 +181,17 @@ structure-datascope/
 structure:
   data-scope:
     enabled: true
-    
+
     # 扫描 DTO 类的包路径，支持列级权限注解
     scan-packages:
       - cn.structured.datascope.example.dto
-    
-    # 字段配置：指定 orgId 和 deptId 字段名称
-    field-config:
-      org-id-field: orgId
-      dept-id-field: deptId
-    
-    # 是否自动注册规则
-    auto-register-rules: true
+
+    # 响应体自动过滤（启用后自动过滤带 @DataScopeRule 注解的 DTO 敏感字段）
+    auto-filter-response: true
+
+    # 响应包装类名（用于处理包装类内层 data 字段的过滤）
+    result-wrapper-class: cn.structure.common.entity.ResResultVO
+    result-wrapper-data-method: getData
 ```
 
 ### 2. 实现数据权限提供器
@@ -319,7 +325,77 @@ public interface OrderMapper extends BaseMapper<Order> {
 **自动添加的 WHERE 条件示例**：
 ```sql
 -- 如果当前用户属于 orgId=10, deptIds=[1,2,3]
-SELECT * FROM orders WHERE (orders.org_id = '10' AND orders.dept_id IN ('1','2','3'))
+SELECT * FROM orders WHERE (orders.dept_id IN ('1','2','3'))
+```
+
+### 5.1 MyBatis-Plus 完整配置示例
+
+```yaml
+structure:
+  data-scope:
+    enabled: true
+    enable-tenant: true          # 启用租户拦截器
+    enable-pagination: true      # 启用分页拦截器
+    enable-data-scope: true      # 启用数据权限
+    auto-register-rules: true
+    auto-filter-response: true
+    scan-packages:
+      - cn.structured.datascope.example.dto
+    tenant-id-column: org_id     # 租户字段名
+    default-tenant-id: 10        # 默认租户ID
+```
+
+**拦截器执行顺序**：
+1. `TenantLineInnerInterceptor` - 先添加租户隔离条件
+2. `DataScopeInterceptor` - 添加数据权限条件（部门级）
+3. `PaginationInnerInterceptor` - 最后执行分页，生成COUNT查询时会包含前面的条件
+
+### 5.2 多表关联查询支持
+
+框架自动识别 SQL 中的多表关联查询，只对主表添加数据权限条件：
+
+```java
+// Mapper 接口
+public interface OrderUserMapper {
+
+    // 多表关联查询
+    @Select("SELECT o.*, u.name FROM orders o " +
+            "LEFT JOIN users u ON o.user_id = u.id " +
+            "WHERE o.status = #{status}")
+    List<OrderUserVO> selectOrderWithUser(@Param("status") Integer status);
+}
+```
+
+自动转换为：
+```sql
+-- 自动只对主表(orders)添加数据权限条件
+SELECT o.*, u.name FROM orders o 
+LEFT JOIN users u ON o.user_id = u.id 
+WHERE (o.dept_id IN ('1','2','3')) AND o.status = 1
+```
+
+### 5.3 自定义多表数据权限处理器
+
+```java
+@Service
+public class CustomMultiTableDataScopeHandler implements MultiTableDataScopeHandler {
+
+    @Override
+    public String handleMultiTable(String sql, List<TableInfo> tableInfos, 
+                                   DataScopeFieldConfig fieldConfig) {
+        // 自定义多表处理逻辑
+        // tableInfos 包含所有表的别名和位置信息
+        return sql;
+    }
+}
+
+// 配置
+@Bean
+public DataScopeInterceptor dataScopeInterceptor(DataScopeFieldConfig fieldConfig) {
+    DataScopeInterceptor interceptor = new DataScopeInterceptor(fieldConfig);
+    interceptor.setMultiTableDataScopeHandler(new CustomMultiTableDataScopeHandler());
+    return interceptor;
+}
 ```
 
 ### 6. 列级权限过滤（序列化前）
@@ -377,10 +453,12 @@ boolean hasAnyPermission = DataScopeContext.hasAnyPermission("order:view_amount"
 | structure-datascope-dependencies | 父模块，定义依赖版本和基础配置 |
 | structure-datascope-core | 核心模块：数据权限上下文、规则引擎、注解定义（支持角色和权限） |
 | structure-datascope-starter | Spring Boot Starter，自动配置（通过DataScopeProvider获取数据权限） |
-| structure-datascope-mybatis-plus | MyBatis-Plus 分页插件，自动添加行级条件 |
+| structure-datascope-mybatis-plus | MyBatis-Plus 分页插件，自动添加行级条件，支持多表关联查询 |
 | structure-datascope-redis | Redis 数据范围前缀处理 |
 | structure-datascope-elasticsearch | ES 查询自动添加范围过滤 |
 | structure-datascope-mongodb | MongoDB 查询自动添加范围过滤 |
+| structure-datascope-cache | 缓存数据范围隔离，支持 Caffeine/Ehcache/Redis 等多种缓存 |
+| structure-datascope-message | Spring Cloud Stream 消息数据权限透传 |
 
 ## 注解说明
 

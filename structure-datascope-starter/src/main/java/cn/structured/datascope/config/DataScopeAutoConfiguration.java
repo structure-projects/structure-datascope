@@ -7,6 +7,7 @@ import cn.structured.datascope.engine.impl.DefaultDataRuleEngineManager;
 import cn.structured.datascope.provider.DataScopeProvider;
 import cn.structured.datascope.provider.DefaultDataScopeProviderImpl;
 import cn.structured.datascope.scanner.DataRuleScanner;
+import cn.structured.datascope.web.DataScopeContextFilter;
 import cn.structured.datascope.web.DataScopeResponseBodyAdvice;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,6 +15,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -121,5 +123,24 @@ public class DataScopeAutoConfiguration {
             @Qualifier("dataRuleEngine") DataRuleEngine ruleEngine, DataScopeProperties properties) {
         log.info("Registering DataScopeResponseBodyAdvice for automatic field filtering");
         return new DataScopeResponseBodyAdvice(ruleEngine, properties);
+    }
+
+    /**
+     * 注册数据范围上下文过滤器
+     * <p>
+     * 在 UserContextFilter 之后执行，通过 DataScopeProvider 获取用户数据权限信息，
+     * 并初始化 DataScopeContext。顺序设置为 101，确保在 UserContextFilter（假设为100）之后执行。
+     * </p>
+     */
+    @Bean
+    @ConditionalOnWebApplication
+    public FilterRegistrationBean<DataScopeContextFilter> dataScopeContextFilterRegistration(
+            DataScopeProvider dataScopeProvider) {
+        log.info("Registering DataScopeContextFilter with order 101");
+        FilterRegistrationBean<DataScopeContextFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new DataScopeContextFilter(dataScopeProvider));
+        registration.setOrder(101);
+        registration.addUrlPatterns("/*");
+        return registration;
     }
 }

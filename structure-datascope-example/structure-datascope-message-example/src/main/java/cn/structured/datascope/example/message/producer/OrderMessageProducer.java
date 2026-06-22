@@ -4,7 +4,6 @@ import cn.structured.datascope.DataScopeContext;
 import cn.structured.datascope.example.message.dto.OrderEvent;
 import cn.structured.datascope.message.wrapper.DataScopeStreamBridge;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;

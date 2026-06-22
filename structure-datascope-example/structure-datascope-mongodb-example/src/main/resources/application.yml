@@ -5,6 +5,8 @@ server:
 spring:
   application:
     name: data-scope-mongodb-example
+  main:
+    allow-circular-references: true
   mongodb:
     uri: mongodb://user:123456@172.24.20.15:27017/test?authSource=admin&authMechanism=SCRAM-SHA-1
 
@@ -18,6 +20,12 @@ structure:
     enabled: true
     scan-packages:
       - cn.structured.datascope.example.mongodb
+  security:
+    enabled: true
+    antMatchers:
+      unAuthenticated:
+        - /**
+
 logging:
   level:
     cn.structured.datascope: DEBUG

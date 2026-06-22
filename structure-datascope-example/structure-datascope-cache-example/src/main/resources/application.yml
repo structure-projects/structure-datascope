@@ -5,6 +5,8 @@ server:
 spring:
   application:
     name: data-scope-cache-example
+  main:
+    allow-circular-references: true
   data:
     redis:
       host: 172.24.20.15
@@ -21,6 +23,11 @@ structure:
       org-id-field: orgId
       dept-id-field: deptId
       user-id-field: userId
+  security:
+    enabled: true
+    antMatchers:
+      unAuthenticated:
+        - /**
 
 logging:
   level:
