@@ -5,15 +5,15 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>cn.structured</groupId>
-        <artifactId>structure-datascope-example</artifactId>
+        <artifactId>structure-datascope-dependencies</artifactId>
         <version>${revision}</version>
-        <relativePath>../pom.xml</relativePath>
+        <relativePath>../structure-datascope-dependencies/pom.xml</relativePath>
     </parent>
 
     <packaging>jar</packaging>
-    <name>structure-datascope-message-example</name>
-    <artifactId>structure-datascope-message-example</artifactId>
-    <description>数据范围管理消息场景示例（基于Spring Cloud Stream + RabbitMQ）</description>
+    <name>structure-datascope-message</name>
+    <artifactId>structure-datascope-message</artifactId>
+    <description>数据范围管理消息传递模块：基于Spring Cloud Stream实现数据权限从生产者到消费者的透传</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -24,32 +24,35 @@
     <dependencies>
         <dependency>
             <groupId>cn.structured</groupId>
-            <artifactId>structure-datascope-starter</artifactId>
+            <artifactId>structure-datascope-core</artifactId>
             <version>${revision}</version>
         </dependency>
-
-        <dependency>
-            <groupId>cn.structured</groupId>
-            <artifactId>structure-datascope-message</artifactId>
-            <version>${revision}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+            <artifactId>spring-cloud-stream</artifactId>
         </dependency>
-
         <dependency>
-            <groupId>cn.structured</groupId>
-            <artifactId>structure-common</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
 </project>
