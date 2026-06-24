@@ -1,5 +1,6 @@
 package cn.structured.datascope.web;
 
+import cn.structure.starter.tenant.TenantContextHolder;
 import cn.structured.datascope.DataScopeContext;
 import cn.structured.datascope.DataScopeInfo;
 import cn.structured.datascope.provider.DataScopeProvider;
@@ -60,6 +61,7 @@ public class DataScopeContextFilter implements Filter {
         } finally {
             // 请求结束时清理上下文，避免内存泄漏
             DataScopeContext.remove();
+            TenantContextHolder.clear();
         }
     }
 }

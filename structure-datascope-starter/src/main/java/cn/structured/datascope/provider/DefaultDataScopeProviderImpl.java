@@ -1,5 +1,6 @@
 package cn.structured.datascope.provider;
 
+import cn.structure.starter.tenant.TenantContextHolder;
 import cn.structured.datascope.DataScopeInfo;
 import cn.structured.security.context.UserContext;
 import cn.structured.security.entity.UserContextEntity;
@@ -34,7 +35,8 @@ public class DefaultDataScopeProviderImpl extends DefaultDataScopeProvider {
             Set<String> permissions = userContextEntity.getPermissions();
             scopeInfo.setPermissions(permissions == null ? new ArrayList<>() : new ArrayList<>(permissions));
             //String deptId = userContextEntity.getDeptId();
-            String tenantId = userContextEntity.getTenantId();
+            String tenantId = TenantContextHolder.getTenantId();
+//            String tenantId = userContextEntity.getTenantId();
             scopeInfo.setOrgId(tenantId);
             Set<String> deptIds = userContextEntity.getDeptIds();
             scopeInfo.setDeptIds(deptIds == null ? new ArrayList<>() : new ArrayList<>(deptIds));

@@ -51,6 +51,11 @@
             <groupId>cn.structured</groupId>
             <artifactId>structure-security-core</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>cn.structured</groupId>
+            <artifactId>structure-tenant-starter</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

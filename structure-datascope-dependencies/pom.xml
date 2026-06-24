@@ -79,6 +79,13 @@
                 <artifactId>structure-common</artifactId>
                 <version>${structure.version}</version>
             </dependency>
+
+
+            <dependency>
+                <groupId>cn.structured</groupId>
+                <artifactId>structure-tenant-starter</artifactId>
+                <version>${structure.version}</version>
+            </dependency>
             <!-- Spring Cloud BOM -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>

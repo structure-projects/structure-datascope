@@ -51,4 +51,12 @@ public class DataScopeMybatisProperties {
      * 排除表列表（这些表不应用数据权限）
      */
     private List<String> excludeTables = new ArrayList<>();
+
+    /**
+     * 是否启用多表查询支持
+     * <p>
+     * 默认关闭，开启后会对多表JOIN查询应用数据权限条件
+     * </p>
+     */
+    private Boolean enableMultiTable = false;
 }

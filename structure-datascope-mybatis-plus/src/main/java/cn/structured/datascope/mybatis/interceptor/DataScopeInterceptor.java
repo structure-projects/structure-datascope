@@ -2,6 +2,7 @@ package cn.structured.datascope.mybatis.interceptor;
 
 import cn.structured.datascope.DataScopeContext;
 import cn.structured.datascope.config.DataScopeFieldConfig;
+import cn.structured.datascope.mybatis.properties.DataScopeMybatisProperties;
 import com.baomidou.mybatisplus.extension.plugins.inner.InnerInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.executor.Executor;
@@ -31,10 +32,12 @@ import java.util.List;
 public class DataScopeInterceptor implements InnerInterceptor {
 
     private final DataScopeFieldConfig fieldConfig;
+    private final DataScopeMybatisProperties properties;
     private MultiTableDataScopeHandler multiTableDataScopeHandler;
 
-    public DataScopeInterceptor(DataScopeFieldConfig fieldConfig) {
+    public DataScopeInterceptor(DataScopeFieldConfig fieldConfig, DataScopeMybatisProperties properties) {
         this.fieldConfig = fieldConfig;
+        this.properties = properties;
         this.multiTableDataScopeHandler = new DefaultMultiTableDataScopeHandler();
     }
 
@@ -69,6 +72,11 @@ public class DataScopeInterceptor implements InnerInterceptor {
         }
 
         log.debug("Extracted tables: {}", tableInfos);
+
+        if (tableInfos.size() > 1 && Boolean.FALSE.equals(properties.getEnableMultiTable())) {
+            log.debug("Multi-table query support is disabled, bypass multi-table data scope processing");
+            return;
+        }
 
         // 使用多表处理器处理数据权限
         String modifiedSql = multiTableDataScopeHandler.handleMultiTable(originalSql, tableInfos, fieldConfig);
