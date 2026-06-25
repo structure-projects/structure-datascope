@@ -7,11 +7,14 @@ spring:
     name: data-scope-elasticsearch-example
   main:
     allow-circular-references: true
+  data:
+    elasticsearch:
+      repositories:
+        enabled: true
   elasticsearch:
     uris: http://172.24.20.15:9200
     username: elastic
     password: Elastic_aXbnMp
-
 # 数据范围管理配置
 structure:
   data-scope:

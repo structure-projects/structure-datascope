@@ -1,17 +1,20 @@
 package cn.structured.datascope.example.elasticsearch.config;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch.core.GetResponse;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.elasticsearch.core.search.TotalHits;
-import co.elastic.clients.elasticsearch.core.search.TotalHitsRelation;
 import cn.structured.datascope.example.elasticsearch.dto.OrderResponse;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.client.elc.NativeQuery;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.SearchHitsImpl;
+import org.springframework.data.elasticsearch.core.TotalHitsRelation;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.Query;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,16 +37,16 @@ public class MockElasticsearchConfiguration {
     }
 
     private void initMockData() {
-        orderStore.put("1", createOrder(1L, "ORD-2024-001", 10L, 1L, new BigDecimal("99.99"), "13800138001", "customer1@example.com", "First order remark"));
-        orderStore.put("2", createOrder(2L, "ORD-2024-002", 10L, 2L, new BigDecimal("199.99"), "13800138002", "customer2@example.com", "Second order remark"));
-        orderStore.put("3", createOrder(3L, "ORD-2024-003", 10L, 3L, new BigDecimal("299.99"), "13800138003", "customer3@example.com", "Third order remark"));
-        orderStore.put("4", createOrder(4L, "ORD-2024-004", 20L, 6L, new BigDecimal("399.99"), "13800138004", "customer4@example.com", "Fourth order remark"));
-        orderStore.put("5", createOrder(5L, "ORD-2024-005", 20L, 7L, new BigDecimal("499.99"), "13800138005", "customer5@example.com", "Fifth order remark"));
+        orderStore.put("1", createOrder("1", "ORD-2024-001", 10L, 1L, new BigDecimal("99.99"), "13800138001", "customer1@example.com", "First order remark"));
+        orderStore.put("2", createOrder("2", "ORD-2024-002", 10L, 2L, new BigDecimal("199.99"), "13800138002", "customer2@example.com", "Second order remark"));
+        orderStore.put("3", createOrder("3", "ORD-2024-003", 10L, 3L, new BigDecimal("299.99"), "13800138003", "customer3@example.com", "Third order remark"));
+        orderStore.put("4", createOrder("4", "ORD-2024-004", 20L, 6L, new BigDecimal("399.99"), "13800138004", "customer4@example.com", "Fourth order remark"));
+        orderStore.put("5", createOrder("5", "ORD-2024-005", 20L, 7L, new BigDecimal("499.99"), "13800138005", "customer5@example.com", "Fifth order remark"));
     }
 
-    private OrderResponse createOrder(Long id, String orderNo, Long orgId, Long deptId, BigDecimal amount, String phone, String email, String remark) {
+    private OrderResponse createOrder(String id, String orderNo, Long orgId, Long deptId, BigDecimal amount, String phone, String email, String remark) {
         OrderResponse order = new OrderResponse();
-        order.setId(String.valueOf(id));
+        order.setId(id);
         order.setOrderNo(orderNo);
         order.setOrgId(orgId);
         order.setDeptId(deptId);
@@ -58,57 +61,61 @@ public class MockElasticsearchConfiguration {
 
     @Bean
     @Primary
-    @SuppressWarnings("unchecked")
-    public ElasticsearchClient elasticsearchClient() throws Exception {
-        ElasticsearchClient client = mock(ElasticsearchClient.class);
+    public ElasticsearchTemplate elasticsearchTemplate() {
+        ElasticsearchTemplate template = mock(ElasticsearchTemplate.class);
 
-        when(client.search(any(co.elastic.clients.elasticsearch.core.SearchRequest.class), any(Class.class)))
+        when(template.search(any(Query.class), any(Class.class), any(IndexCoordinates.class)))
                 .thenAnswer(invocation -> {
-                    SearchResponse<OrderResponse> response = mock(SearchResponse.class);
-                    co.elastic.clients.elasticsearch.core.search.HitsMetadata<OrderResponse> hitsMetadata = mock(co.elastic.clients.elasticsearch.core.search.HitsMetadata.class);
-                    TotalHits totalHits = mock(TotalHits.class);
-
-                    List<Hit<OrderResponse>> hits = new ArrayList<>();
+                    Query queryArg = invocation.getArgument(0);
+                    List<SearchHit<OrderResponse>> searchHits = new ArrayList<>();
                     for (Map.Entry<String, OrderResponse> entry : orderStore.entrySet()) {
-                        Hit<OrderResponse> hit = mock(Hit.class);
-                        when(hit.id()).thenReturn(entry.getKey());
-                        when(hit.source()).thenReturn(entry.getValue());
-                        hits.add(hit);
+                        SearchHit<OrderResponse> hit = mock(SearchHit.class);
+                        when(hit.getId()).thenReturn(entry.getKey());
+                        when(hit.getContent()).thenReturn(entry.getValue());
+                        when(hit.getIndex()).thenReturn("orders");
+                        searchHits.add(hit);
                     }
 
-                    when(hitsMetadata.hits()).thenReturn(hits);
-                    when(hitsMetadata.total()).thenReturn(totalHits);
-                    when(totalHits.value()).thenReturn((long) hits.size());
-                    when(totalHits.relation()).thenReturn(TotalHitsRelation.Eq);
-                    when(response.hits()).thenReturn(hitsMetadata);
-
-                    return response;
+                    return new SearchHitsImpl<>(
+                            searchHits.size(),
+                            TotalHitsRelation.EQUAL_TO,
+                            0.0f,
+                            Duration.ZERO,
+                            null,
+                            null,
+                            searchHits,
+                            null,
+                            null,
+                            null
+                    );
                 });
 
-        when(client.get(any(co.elastic.clients.elasticsearch.core.GetRequest.class), any(Class.class)))
+        when(template.get(anyString(), any(Class.class), any(IndexCoordinates.class)))
                 .thenAnswer(invocation -> {
-                    GetResponse<OrderResponse> response = mock(GetResponse.class);
-                    when(response.found()).thenReturn(true);
-                    when(response.source()).thenReturn(orderStore.values().iterator().next());
-                    return response;
+                    String id = invocation.getArgument(0);
+                    return orderStore.getOrDefault(id, orderStore.values().iterator().next());
                 });
 
-        when(client.index(any(co.elastic.clients.elasticsearch.core.IndexRequest.class)))
+        when(template.save(any(Object.class), any(IndexCoordinates.class)))
                 .thenAnswer(invocation -> {
-                    co.elastic.clients.elasticsearch.core.IndexResponse indexResponse = mock(co.elastic.clients.elasticsearch.core.IndexResponse.class);
-                    when(indexResponse.id()).thenReturn(UUID.randomUUID().toString());
-                    when(indexResponse.result()).thenReturn(co.elastic.clients.elasticsearch._types.Result.Created);
-                    return indexResponse;
+                    Object entity = invocation.getArgument(0);
+                    if (entity instanceof OrderResponse order) {
+                        if (order.getId() == null || order.getId().isEmpty()) {
+                            order.setId(UUID.randomUUID().toString());
+                        }
+                        orderStore.put(order.getId(), order);
+                        return order;
+                    }
+                    return entity;
                 });
 
-        when(client.delete(any(co.elastic.clients.elasticsearch.core.DeleteRequest.class)))
+        when(template.delete(anyString(), any(IndexCoordinates.class)))
                 .thenAnswer(invocation -> {
-                    co.elastic.clients.elasticsearch.core.DeleteResponse deleteResponse = mock(co.elastic.clients.elasticsearch.core.DeleteResponse.class);
-                    when(deleteResponse.id()).thenReturn("1");
-                    when(deleteResponse.result()).thenReturn(co.elastic.clients.elasticsearch._types.Result.Deleted);
-                    return deleteResponse;
+                    String id = invocation.getArgument(0);
+                    orderStore.remove(id);
+                    return id;
                 });
 
-        return client;
+        return template;
     }
 }

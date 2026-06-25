@@ -7,6 +7,13 @@ spring:
   main:
     allow-circular-references: true
     allow-bean-definition-overriding: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchRepositoriesAutoConfiguration
+      - org.springframework.boot.data.elasticsearch.autoconfigure.DataElasticsearchAutoConfiguration
+      - org.springframework.boot.elasticsearch.autoconfigure.ElasticsearchClientAutoConfiguration
+      - org.springframework.boot.elasticsearch.autoconfigure.ElasticsearchRestClientAutoConfiguration
 
 structure:
   data-scope:
