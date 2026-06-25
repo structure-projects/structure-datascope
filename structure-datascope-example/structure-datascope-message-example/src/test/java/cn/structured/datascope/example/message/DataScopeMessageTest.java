@@ -3,6 +3,7 @@ package cn.structured.datascope.example.message;
 import cn.structured.datascope.DataScopeContext;
 import cn.structured.datascope.DataScopeInfo;
 import cn.structured.datascope.example.message.dto.OrderEvent;
+import cn.structured.datascope.example.message.config.TestBinderConfiguration;
 import cn.structured.datascope.message.DataScopeMessageUtils;
 import cn.structured.datascope.provider.DataScopeProvider;
 import org.junit.jupiter.api.AfterEach;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
@@ -39,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(TestBinderConfiguration.class)
 class DataScopeMessageTest {
 
     @Autowired
