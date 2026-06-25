@@ -2,12 +2,15 @@ package cn.structured.datascope.example.elasticsearch;
 
 import cn.structured.datascope.DataScopeContext;
 import cn.structured.datascope.DataScopeInfo;
+import cn.structured.datascope.example.elasticsearch.config.MockElasticsearchConfiguration;
 import cn.structured.datascope.example.elasticsearch.dto.OrderResponse;
 import cn.structured.datascope.provider.DataScopeProvider;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -39,6 +42,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
+@Import(MockElasticsearchConfiguration.class)
 class RowLevelDataScopeTest {
 
     @Autowired
