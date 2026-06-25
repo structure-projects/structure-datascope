@@ -29,9 +29,9 @@ public class MessageController {
             @RequestParam(name = "orderId") Long orderId,
             @RequestParam(name = "orderNo") String orderNo) {
 
-        log.info("API: POST /api/messages/order/created - orderId: {}, orderNo: {}", orderId, orderNo);
+        log.info("API: POST /api/messages/order/created - orderId: {}, orderNo: {}, userId: {}", 
+                orderId, orderNo, DataScopeContext.getUserId());
 
-        DataScopeContext.setUserId("1");
         messageProducer.sendOrderCreatedEvent(orderId, orderNo);
 
         return ResultUtilSimpleImpl.success(null);

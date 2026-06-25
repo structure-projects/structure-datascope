@@ -16,6 +16,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -35,11 +36,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 测试基于Spring Cloud Stream的数据权限信息从生产者到消费者的透传功能
  * </p>
  */
-@SpringBootTest(properties = {
-        "spring.cloud.stream.function.definition=",
-        "spring.autoconfigure.exclude=org.springframework.cloud.function.context.config.KotlinLambdaToFunctionAutoConfiguration"
-})
+@SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 class DataScopeMessageTest {
 
     @Autowired
@@ -412,6 +411,8 @@ class DataScopeMessageTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
+            setupUserContext("user-004");
+
             OrderEvent event = createTestOrderEvent();
             Message<OrderEvent> message = MessageBuilder.withPayload(event).build();
             Message<OrderEvent> injectedMessage = DataScopeMessageUtils.injectDataScopeIntoMessage(message);
@@ -439,6 +440,8 @@ class DataScopeMessageTest {
                             .param("orderNo", "ORDER-MULTIROLE-001"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
+
+            setupUserContext("user-004");
 
             OrderEvent event = createTestOrderEvent();
             Message<OrderEvent> message = MessageBuilder.withPayload(event).build();

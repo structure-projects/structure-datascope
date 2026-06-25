@@ -1,7 +1,7 @@
 package cn.structured.datascope.mybatis.plus.handler;
 
+import cn.structured.datascope.DataScopeContext;
 import cn.structured.datascope.mybatis.properties.DataScopeMybatisProperties;
-import cn.structured.security.context.UserContext;
 import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
@@ -21,7 +21,8 @@ public class StructureTenantLineHandler implements TenantLineHandler {
     public Expression getTenantId() {
         // 默认租户为1
         try {
-            String tenantId = UserContext.get().getTenantId();
+            // 次处租户使用自己的上下文主要是要兼容租户识别的方式
+            String tenantId = DataScopeContext.getOrgId();
             return new LongValue(tenantId);
         } catch (Exception e) {
             return new LongValue(dataScopeMybatisProperties.getDefaultTenantId());
@@ -37,27 +38,19 @@ public class StructureTenantLineHandler implements TenantLineHandler {
     @Override
     public boolean ignoreTable(String tableName) {
         // 忽略表
-        String excludeTableName = dataScopeMybatisProperties.getExcludeTables().stream()
-                .filter(tableName::equals)
-                .findFirst()
-                .orElse(null);
+        String excludeTableName = dataScopeMybatisProperties.getExcludeTables().stream().filter(tableName::equals).findFirst().orElse(null);
         // 忽略表
         if (null != excludeTableName) {
             return true;
         }
 
         // 忽略字段
-        TableInfo tableInfo = TableInfoHelper.getTableInfos().
-                stream()
-                .filter(table -> table.getTableName().equals(tableName))
-                .findFirst().orElse(null);
+        TableInfo tableInfo = TableInfoHelper.getTableInfos().stream().filter(table -> table.getTableName().equals(tableName)).findFirst().orElse(null);
         if (null == tableInfo) {
             return true;
         }
         // 忽略字段
-        TableFieldInfo tableField = tableInfo.getFieldList().stream().filter(tableFieldInfo ->
-                tableFieldInfo.getColumn().equals(dataScopeMybatisProperties.getTenantIdColumn())
-        ).findFirst().orElse(null);
+        TableFieldInfo tableField = tableInfo.getFieldList().stream().filter(tableFieldInfo -> tableFieldInfo.getColumn().equals(dataScopeMybatisProperties.getTenantIdColumn())).findFirst().orElse(null);
         return (null == tableField);
     }
 }

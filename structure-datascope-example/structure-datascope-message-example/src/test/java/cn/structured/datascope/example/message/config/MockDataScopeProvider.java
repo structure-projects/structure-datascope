@@ -105,7 +105,24 @@ public class MockDataScopeProvider implements DataScopeProvider {
 
     @Override
     public DataScopeInfo getScopeInfo(String userId) {
-        return USER_INFO_MAP.getOrDefault(userId, createDefaultInfo(userId));
+        DataScopeInfo info = USER_INFO_MAP.get(userId);
+        if (info != null) {
+            return copyDataScopeInfo(info);
+        }
+        return createDefaultInfo(userId);
+    }
+
+    private DataScopeInfo copyDataScopeInfo(DataScopeInfo source) {
+        DataScopeInfo copy = new DataScopeInfo();
+        copy.setUserId(source.getUserId());
+        copy.setOrgId(source.getOrgId());
+        copy.setRoles(new ArrayList<>(source.getRoles()));
+        copy.setDeptIds(new ArrayList<>(source.getDeptIds()));
+        copy.setPermissions(new ArrayList<>(source.getPermissions()));
+        Map<String, List<String>> hiddenFieldsCopy = new HashMap<>();
+        source.getHiddenFields().forEach((k, v) -> hiddenFieldsCopy.put(k, new ArrayList<>(v)));
+        copy.setHiddenFields(hiddenFieldsCopy);
+        return copy;
     }
 
     private DataScopeInfo createDefaultInfo(String userId) {

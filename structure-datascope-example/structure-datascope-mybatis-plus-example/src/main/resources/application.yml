@@ -30,6 +30,7 @@ structure:
     enable-tenant: true  # 启用租户拦截器
     enable-pagination: true  # 启用分页拦截器
     enable-data-scope: true  # 启用数据权限
+    enable-multi-table: true  # 启用多表查询支持
     auto-register-rules: true
     auto-filter-response: true
     scan-packages:

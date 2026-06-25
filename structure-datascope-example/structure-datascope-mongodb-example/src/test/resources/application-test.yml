@@ -1,0 +1,32 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: data-scope-mongodb-example
+  main:
+    allow-circular-references: true
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/test
+
+structure:
+  data-scope:
+    field-config:
+      org-id-field: orgId
+      dept-id-field: deptId
+      user-id-field: userId
+    enabled: true
+    scan-packages:
+      - cn.structured.datascope.example.mongodb
+  security:
+    enabled: true
+    antMatchers:
+      unAuthenticated:
+        - /**
+
+logging:
+  level:
+    cn.structured.datascope: DEBUG
+    cn.structured.datascope.example.mongodb: DEBUG
+    root: INFO

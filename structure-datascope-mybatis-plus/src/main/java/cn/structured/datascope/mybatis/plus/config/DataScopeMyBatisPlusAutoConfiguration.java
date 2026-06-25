@@ -34,8 +34,8 @@ public class DataScopeMyBatisPlusAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(DataScopeInterceptor.class)
-    public DataScopeInterceptor dataScopeInterceptor(DataScopeFieldConfig fieldConfig) {
-        return new DataScopeInterceptor(fieldConfig);
+    public DataScopeInterceptor dataScopeInterceptor(DataScopeFieldConfig fieldConfig, DataScopeMybatisProperties properties) {
+        return new DataScopeInterceptor(fieldConfig, properties);
     }
 
     /**

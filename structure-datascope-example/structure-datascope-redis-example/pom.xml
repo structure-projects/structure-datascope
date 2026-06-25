@@ -54,6 +54,7 @@
             <groupId>cn.structured</groupId>
             <artifactId>structure-security-jwt-starter</artifactId>
         </dependency>
+
     </dependencies>
 
 </project>

@@ -1,0 +1,38 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: data-scope-cache-example
+  main:
+    allow-circular-references: true
+    allow-bean-definition-overriding: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
+      - org.springframework.boot.autoconfigure.cache.RedisCacheAutoConfiguration
+  cache:
+    type: simple
+
+structure:
+  data-scope:
+    enabled: true
+    scan-packages:
+      - cn.structured.datascope.example.cache.dto
+    field-config:
+      org-id-field: orgId
+      dept-id-field: deptId
+      user-id-field: userId
+  security:
+    enabled: true
+    antMatchers:
+      unAuthenticated:
+        - /**
+
+logging:
+  level:
+    cn.structured.datascope: DEBUG
+    cn.structured.datascope.example.cache: DEBUG
+    root: INFO
