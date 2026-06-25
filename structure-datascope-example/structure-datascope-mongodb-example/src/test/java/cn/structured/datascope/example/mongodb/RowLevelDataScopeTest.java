@@ -3,6 +3,7 @@ package cn.structured.datascope.example.mongodb;
 import cn.structured.datascope.DataScopeContext;
 import cn.structured.datascope.DataScopeInfo;
 import cn.structured.datascope.example.mongodb.config.MockDataScopeProvider;
+import cn.structured.datascope.example.mongodb.config.MockMongoConfiguration;
 import cn.structured.datascope.example.mongodb.config.TestDataInitializer;
 import cn.structured.datascope.provider.DataScopeProvider;
 import org.junit.jupiter.api.AfterEach;
@@ -40,7 +41,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import({TestDataInitializer.class, MockDataScopeProvider.class})
+@Import({TestDataInitializer.class, MockDataScopeProvider.class, MockMongoConfiguration.class})
+@org.springframework.test.context.ActiveProfiles("test")
 class RowLevelDataScopeTest {
 
     @Autowired

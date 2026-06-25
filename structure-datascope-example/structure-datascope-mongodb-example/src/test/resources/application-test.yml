@@ -1,14 +1,15 @@
-server:
-  port: 8084
-
 spring:
   application:
-    name: data-scope-mongodb-example
+    name: data-scope-mongodb-example-test
   main:
     allow-circular-references: true
-  data:
-    mongodb:
-      database: test
+    allow-bean-definition-overriding: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.mongo.MongoReactiveAutoConfiguration
 
 structure:
   data-scope:
