@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: data-scope-message-example-test
+  main:
+    allow-bean-definition-overriding: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+      - org.springframework.cloud.function.context.config.KotlinLambdaToFunctionAutoConfiguration
+  cloud:
+    stream:
+      function:
+        definition:
+      bindings:
+        orderEventInput-in-0:
+          destination: order-exchange-test
+        orderEventOutput-out-0:
+          destination: order-exchange-test
+
+structure:
+  data-scope:
+    enabled: true
+    field-config:
+      org-id-field: orgId
+      dept-id-field: deptId
+  security:
+    enabled: true
+    antMatchers:
+      unAuthenticated:
+        - /**
+
+logging:
+  level:
+    cn.structured.datascope: DEBUG
+    cn.structured.datascope.example.message: DEBUG
+    root: INFO

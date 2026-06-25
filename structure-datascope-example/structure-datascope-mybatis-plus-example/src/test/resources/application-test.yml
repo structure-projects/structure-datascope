@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: data-scope-mybatis-plus-example-test
+  main:
+    allow-circular-references: true
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  sql:
+    init:
+      schema-locations: classpath:schema-h2.sql
+      mode: always
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: cn.structured.datascope.example.mybatisplus.entity
+
+structure:
+  data-scope:
+    enabled: true
+    enable-tenant: true
+    enable-pagination: true
+    enable-data-scope: true
+    enable-multi-table: true
+    auto-register-rules: true
+    auto-filter-response: true
+    scan-packages:
+      - cn.structured.datascope.example.mybatisplus.dto
+    field-config:
+      dept-id-field: dept_id
+    tenant-id-column: org_id
+    default-tenant-id: 10
+  security:
+    enabled: true
+    default-login-url: /api/user/login
+    corsFilterClass: cn.structured.security.filter.CorsFilter
+    antMatchers:
+      unAuthenticated:
+        - /**
+
+logging:
+  level:
+    cn.structured.datascope: DEBUG
+    cn.structured.datascope.example.mybatisplus: DEBUG
+    root: INFO
