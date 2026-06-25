@@ -45,6 +45,12 @@
             <groupId>cn.structured</groupId>
             <artifactId>structure-security-jwt-starter</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>de.flapdoodle.embed</groupId>
+            <artifactId>de.flapdoodle.embed.mongo</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

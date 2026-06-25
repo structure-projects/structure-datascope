@@ -8,7 +8,7 @@ spring:
     allow-circular-references: true
   data:
     mongodb:
-      uri: mongodb://localhost:27017/test
+      database: test
 
 structure:
   data-scope:

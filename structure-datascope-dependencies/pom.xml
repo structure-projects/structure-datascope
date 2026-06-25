@@ -35,6 +35,7 @@
         <spring-cloud.version>2025.1.0</spring-cloud.version>
         <spring-cloud-parent.version>5.0.0</spring-cloud-parent.version>
         <structure-security.version>1.1.4</structure-security.version>
+        <flapdoodle-mongo.version>4.6.3</flapdoodle-mongo.version>
     </properties>
 
     <url>https://projects.structured.cn/structure-boot</url>
@@ -131,6 +132,12 @@
                 <groupId>cn.structured</groupId>
                 <artifactId>structure-security-oauth-resource-starter</artifactId>
                 <version>${structure-security.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.flapdoodle.embed</groupId>
+                <artifactId>de.flapdoodle.embed.mongo</artifactId>
+                <version>${flapdoodle-mongo.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
