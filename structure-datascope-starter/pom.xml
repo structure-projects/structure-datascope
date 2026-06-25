@@ -49,6 +49,7 @@
         <dependency>
             <groupId>cn.structured</groupId>
             <artifactId>structure-tenant-starter</artifactId>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
