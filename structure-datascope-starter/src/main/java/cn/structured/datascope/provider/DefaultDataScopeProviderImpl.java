@@ -36,11 +36,13 @@ public class DefaultDataScopeProviderImpl extends DefaultDataScopeProvider {
             scopeInfo.setPermissions(permissions == null ? new ArrayList<>() : new ArrayList<>(permissions));
             //String deptId = userContextEntity.getDeptId();
             String tenantId = TenantContextHolder.getTenantId();
-//            String tenantId = userContextEntity.getTenantId();
+            //String tenantId = userContextEntity.getTenantId();
             scopeInfo.setOrgId(tenantId);
             Set<String> deptIds = userContextEntity.getDeptIds();
             scopeInfo.setDeptIds(deptIds == null ? new ArrayList<>() : new ArrayList<>(deptIds));
             scopeInfo.setUserId(userId);
+            // 默认用户上下文中时没有的 有两种方式识别，一个时读取权限系统获取的，两外一个时根据权限引擎与示例的映射关系生成
+            //scopeInfo.getHiddenFields().put("order", new ArrayList<>());
             return scopeInfo;
         }
         return null;
